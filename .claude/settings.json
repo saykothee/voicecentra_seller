@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "WebSearch",
-      "WebFetch(domain:bugs.mysql.com)",
-      "Bash(grep -A 30 'middlewareGroups\\\\|web\\\\\\(\\\\\\)\\\\|defaultWebMiddleware\\\\|getMiddlewareGroups\\\\|$web\\\\b' /Users/cesar/Documents/proyectos/sellers_portal/vendor/laravel/framework/src/Illuminate/Foundation/Configuration/Middleware.php)"
-    ]
-  }
-}
