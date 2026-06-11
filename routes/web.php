@@ -9,9 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SellerDashboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', fn () => view('landing'))->name('landing');
 
 Route::get('/lang/{locale}', LocaleController::class)->name('locale.switch');
 
