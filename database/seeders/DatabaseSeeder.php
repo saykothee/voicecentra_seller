@@ -22,14 +22,20 @@ class DatabaseSeeder extends Seeder
             'phone' => null,
         ]);
 
-        User::factory()->pending()->create([
-            'name' => 'Demo Pending Seller',
-            'email' => 'pending@voicecentra.com',
+        // Approved seller — can log in and reach the seller dashboard immediately.
+        User::factory()->approvedSeller()->create([
+            'name' => 'Seller One',
+            'email' => 'seller1@seller1.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('seller'),
+            'phone' => '555-0101',
         ]);
 
-        User::factory()->approvedSeller()->create([
-            'name' => 'Demo Approved Seller',
-            'email' => 'approved@voicecentra.com',
+        // Pending seller — sits in the approval queue so you can demo admin approve/reject.
+        User::factory()->pending()->create([
+            'name' => 'Seller Two',
+            'email' => 'seller2@seller2.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('seller'),
+            'phone' => '555-0102',
         ]);
     }
 }
