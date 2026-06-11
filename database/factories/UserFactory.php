@@ -29,6 +29,9 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role' => 'seller',
+            'status' => 'pending',
+            'phone' => fake()->numerify('555-####'),
         ];
     }
 
@@ -39,6 +42,25 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn () => ['role' => 'admin', 'status' => 'approved']);
+    }
+
+    public function pending(): static
+    {
+        return $this->state(fn () => ['role' => 'seller', 'status' => 'pending']);
+    }
+
+    public function approvedSeller(): static
+    {
+        return $this->state(fn () => [
+            'role' => 'seller',
+            'status' => 'approved',
+            'approved_at' => now(),
         ]);
     }
 }
