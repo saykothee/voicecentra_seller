@@ -65,3 +65,40 @@ test('pending sellers cannot view the seller dashboard', function () {
     $seller = User::factory()->pending()->create();
     $this->actingAs($seller)->get('/seller/dashboard')->assertRedirect(route('pending'));
 });
+
+test('admins can view the admin dashboard and sellers list', function () {
+    $admin = User::factory()->admin()->create();
+    $this->actingAs($admin)->get('/admin/dashboard')->assertOk();
+    $this->actingAs($admin)->get('/admin/sellers')->assertOk();
+});
+
+test('non-admins are forbidden from admin routes', function () {
+    $seller = User::factory()->approvedSeller()->create();
+    $this->actingAs($seller)->get('/admin/dashboard')->assertForbidden();
+    $this->actingAs($seller)->get('/admin/sellers')->assertForbidden();
+});
+
+test('an admin can approve a pending seller', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->pending()->create();
+
+    $this->actingAs($admin)
+        ->patch(route('admin.sellers.approve', $seller))
+        ->assertRedirect();
+
+    $seller->refresh();
+    expect($seller->status)->toBe('approved');
+    expect($seller->approved_by)->toBe($admin->id);
+    expect($seller->approved_at)->not->toBeNull();
+});
+
+test('an admin can reject a pending seller', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->pending()->create();
+
+    $this->actingAs($admin)
+        ->patch(route('admin.sellers.reject', $seller))
+        ->assertRedirect();
+
+    expect($seller->fresh()->status)->toBe('rejected');
+});

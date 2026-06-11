@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminSellerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PendingController;
 use App\Http\Controllers\ProfileController;
@@ -16,8 +18,12 @@ Route::get('/dashboard', DashboardController::class)
 Route::get('/pending', [PendingController::class, 'show'])
     ->middleware('auth')->name('pending');
 
-// Stub replaced by controller in Task 7 (admin.dashboard)
-Route::get('/admin/dashboard', fn () => '')->middleware('auth')->name('admin.dashboard');
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/sellers', [AdminSellerController::class, 'index'])->name('sellers.index');
+    Route::patch('/sellers/{user}/approve', [AdminSellerController::class, 'approve'])->name('sellers.approve');
+    Route::patch('/sellers/{user}/reject', [AdminSellerController::class, 'reject'])->name('sellers.reject');
+});
 
 Route::middleware(['auth', 'seller.approved'])->group(function () {
     Route::get('/seller/dashboard', SellerDashboardController::class)->name('seller.dashboard');
