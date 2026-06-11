@@ -105,3 +105,15 @@ test('an admin can reject a pending seller', function () {
     expect($seller->approved_at)->toBeNull();
     expect($seller->approved_by)->toBeNull();
 });
+
+test('a seller can update their phone via the profile form', function () {
+    $seller = User::factory()->approvedSeller()->create(['phone' => '555-0000']);
+
+    $this->actingAs($seller)->patch('/profile', [
+        'name' => $seller->name,
+        'email' => $seller->email,
+        'phone' => '555-9999',
+    ])->assertRedirect();
+
+    expect($seller->fresh()->phone)->toBe('555-9999');
+});

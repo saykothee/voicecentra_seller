@@ -18,6 +18,13 @@
                 </div>
             </div>
 
+            <!-- Language Switcher -->
+            <div class="hidden sm:flex sm:items-center sm:gap-1 sm:ms-6 text-sm text-gray-500">
+                <a href="{{ route('locale.switch', 'en') }}" class="{{ app()->getLocale() === 'en' ? 'text-brand-navy font-semibold' : 'hover:text-brand-navy' }}">EN</a>
+                <span class="opacity-40">/</span>
+                <a href="{{ route('locale.switch', 'es') }}" class="{{ app()->getLocale() === 'es' ? 'text-brand-navy font-semibold' : 'hover:text-brand-navy' }}">ES</a>
+            </div>
+
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
