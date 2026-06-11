@@ -35,3 +35,23 @@ test('new registrations become pending sellers', function () {
     expect($user->phone)->toBe('555-0100');
     $this->assertAuthenticated();
 });
+
+test('dashboard redirects admins to the admin dashboard', function () {
+    $admin = User::factory()->admin()->create();
+    $this->actingAs($admin)->get('/dashboard')->assertRedirect('/admin/dashboard');
+});
+
+test('dashboard redirects approved sellers to the seller dashboard', function () {
+    $seller = User::factory()->approvedSeller()->create();
+    $this->actingAs($seller)->get('/dashboard')->assertRedirect('/seller/dashboard');
+});
+
+test('dashboard redirects pending sellers to the pending page', function () {
+    $seller = User::factory()->pending()->create();
+    $this->actingAs($seller)->get('/dashboard')->assertRedirect(route('pending'));
+});
+
+test('the pending page renders for an authenticated seller', function () {
+    $seller = User::factory()->pending()->create();
+    $this->actingAs($seller)->get('/pending')->assertOk();
+});
