@@ -198,6 +198,7 @@ return new class extends Migration {
             $table->timestamp('approved_at')->nullable()->after('phone');
             $table->foreignId('approved_by')->nullable()->after('approved_at')
                 ->constrained('users')->nullOnDelete();
+            $table->index(['role', 'status']);
         });
     }
 
@@ -796,7 +797,10 @@ test('an admin can reject a pending seller', function () {
         ->patch(route('admin.sellers.reject', $seller))
         ->assertRedirect();
 
-    expect($seller->fresh()->status)->toBe('rejected');
+    $seller->refresh();
+    expect($seller->status)->toBe('rejected');
+    expect($seller->approved_at)->toBeNull();
+    expect($seller->approved_by)->toBeNull();
 });
 ```
 
@@ -824,6 +828,7 @@ class AdminDashboardController extends Controller
             'total' => User::where('role', 'seller')->count(),
             'pending' => User::where('role', 'seller')->where('status', 'pending')->count(),
             'approved' => User::where('role', 'seller')->where('status', 'approved')->count(),
+            'rejected' => User::where('role', 'seller')->where('status', 'rejected')->count(),
         ];
 
         return view('admin.dashboard', compact('stats'));
@@ -879,7 +884,7 @@ class AdminSellerController extends Controller
 
         $user->status = 'rejected';
         $user->approved_at = null;
-        $user->approved_by = auth()->id();
+        $user->approved_by = null;
         $user->save();
 
         return back()->with('status', __('messages.seller_rejected'));
@@ -900,7 +905,7 @@ Create `resources/views/admin/dashboard.blade.php`:
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="grid gap-6 sm:grid-cols-3">
+            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <div class="text-3xl font-bold text-brand-navy">{{ $stats['total'] }}</div>
                     <div class="mt-1 text-sm text-gray-500">{{ __('messages.total_sellers') }}</div>
@@ -912,6 +917,10 @@ Create `resources/views/admin/dashboard.blade.php`:
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <div class="text-3xl font-bold text-brand-blue">{{ $stats['approved'] }}</div>
                     <div class="mt-1 text-sm text-gray-500">{{ __('messages.approved_sellers') }}</div>
+                </div>
+                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                    <div class="text-3xl font-bold text-red-500">{{ $stats['rejected'] }}</div>
+                    <div class="mt-1 text-sm text-gray-500">{{ __('messages.rejected_sellers') }}</div>
                 </div>
             </div>
 
@@ -1186,6 +1195,7 @@ return [
     'total_sellers' => 'Total sellers',
     'pending_sellers' => 'Pending',
     'approved_sellers' => 'Approved',
+    'rejected_sellers' => 'Rejected',
     'manage_sellers' => 'Manage sellers',
     'approve' => 'Approve',
     'reject' => 'Reject',
@@ -1267,6 +1277,7 @@ return [
     'total_sellers' => 'Vendedores totales',
     'pending_sellers' => 'Pendientes',
     'approved_sellers' => 'Aprobados',
+    'rejected_sellers' => 'Rechazados',
     'manage_sellers' => 'Gestionar vendedores',
     'approve' => 'Aprobar',
     'reject' => 'Rechazar',

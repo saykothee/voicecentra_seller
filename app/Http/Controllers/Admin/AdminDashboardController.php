@@ -13,6 +13,7 @@ class AdminDashboardController extends Controller
             'total' => User::where('role', 'seller')->count(),
             'pending' => User::where('role', 'seller')->where('status', 'pending')->count(),
             'approved' => User::where('role', 'seller')->where('status', 'approved')->count(),
+            'rejected' => User::where('role', 'seller')->where('status', 'rejected')->count(),
         ];
 
         return view('admin.dashboard', compact('stats'));

@@ -42,7 +42,7 @@ class AdminSellerController extends Controller
 
         $user->status = 'rejected';
         $user->approved_at = null;
-        $user->approved_by = auth()->id();
+        $user->approved_by = null;
         $user->save();
 
         return back()->with('status', __('messages.seller_rejected'));

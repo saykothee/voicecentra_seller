@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->timestamp('approved_at')->nullable()->after('phone');
             $table->foreignId('approved_by')->nullable()->after('approved_at')
                 ->constrained('users')->nullOnDelete();
+            $table->index(['role', 'status']);
         });
     }
 

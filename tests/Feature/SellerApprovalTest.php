@@ -100,5 +100,8 @@ test('an admin can reject a pending seller', function () {
         ->patch(route('admin.sellers.reject', $seller))
         ->assertRedirect();
 
-    expect($seller->fresh()->status)->toBe('rejected');
+    $seller->refresh();
+    expect($seller->status)->toBe('rejected');
+    expect($seller->approved_at)->toBeNull();
+    expect($seller->approved_by)->toBeNull();
 });
