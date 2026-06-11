@@ -55,3 +55,13 @@ test('the pending page renders for an authenticated seller', function () {
     $seller = User::factory()->pending()->create();
     $this->actingAs($seller)->get('/pending')->assertOk();
 });
+
+test('approved sellers can view their dashboard', function () {
+    $seller = User::factory()->approvedSeller()->create();
+    $this->actingAs($seller)->get('/seller/dashboard')->assertOk()->assertSee($seller->name);
+});
+
+test('pending sellers cannot view the seller dashboard', function () {
+    $seller = User::factory()->pending()->create();
+    $this->actingAs($seller)->get('/seller/dashboard')->assertRedirect(route('pending'));
+});
