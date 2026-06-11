@@ -238,6 +238,13 @@ public function isApproved(): bool
 }
 ```
 
+Also add an `approved_at` datetime cast to the `casts()` method:
+```php
+'approved_at' => 'datetime',
+```
+
+> **Security note:** `role`, `status`, `approved_at`, and `approved_by` are deliberately kept OUT of `$fillable` (least privilege — they must never be mass-assignable from request input). Factory `create()` sets them directly (bypasses guarding), and Task 7 sets them via explicit attribute assignment + `save()`, so they never need to be fillable.
+
 - [ ] **Step 5: Add factory defaults and states**
 
 In `database/factories/UserFactory.php`, set the default `definition()` to include role/status and add states:
@@ -856,11 +863,12 @@ class AdminSellerController extends Controller
     {
         abort_unless($user->isSeller(), 404);
 
-        $user->update([
-            'status' => 'approved',
-            'approved_at' => now(),
-            'approved_by' => auth()->id(),
-        ]);
+        // role/status/audit fields are intentionally not in $fillable (least
+        // privilege), so set them via explicit assignment rather than update([]).
+        $user->status = 'approved';
+        $user->approved_at = now();
+        $user->approved_by = auth()->id();
+        $user->save();
 
         return back()->with('status', __('messages.seller_approved'));
     }
@@ -869,11 +877,10 @@ class AdminSellerController extends Controller
     {
         abort_unless($user->isSeller(), 404);
 
-        $user->update([
-            'status' => 'rejected',
-            'approved_at' => null,
-            'approved_by' => auth()->id(),
-        ]);
+        $user->status = 'rejected';
+        $user->approved_at = null;
+        $user->approved_by = auth()->id();
+        $user->save();
 
         return back()->with('status', __('messages.seller_rejected'));
     }
