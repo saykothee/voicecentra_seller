@@ -14,7 +14,7 @@ class DashboardController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
-        if ($user->isApproved()) {
+        if ($user->isSeller() && $user->isApproved()) {
             return redirect()->route('seller.dashboard');
         }
 

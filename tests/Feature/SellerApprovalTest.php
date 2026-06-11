@@ -117,3 +117,44 @@ test('a seller can update their phone via the profile form', function () {
 
     expect($seller->fresh()->phone)->toBe('555-9999');
 });
+
+test('rejected sellers cannot view the seller dashboard', function () {
+    $seller = User::factory()->create(['role' => 'seller', 'status' => 'rejected']);
+    $this->actingAs($seller)->get('/seller/dashboard')->assertRedirect(route('pending'));
+});
+
+test('admins are redirected away from the seller dashboard', function () {
+    $admin = User::factory()->admin()->create();
+    $this->actingAs($admin)->get('/seller/dashboard')->assertRedirect(route('dashboard'));
+});
+
+test('approved sellers and admins are redirected away from the pending page', function () {
+    $seller = User::factory()->approvedSeller()->create();
+    $this->actingAs($seller)->get('/pending')->assertRedirect(route('seller.dashboard'));
+
+    $admin = User::factory()->admin()->create();
+    $this->actingAs($admin)->get('/pending')->assertRedirect(route('admin.dashboard'));
+});
+
+test('non-admins cannot approve or reject sellers', function () {
+    $seller = User::factory()->approvedSeller()->create();
+    $target = User::factory()->pending()->create();
+    $this->actingAs($seller)->patch(route('admin.sellers.approve', $target))->assertForbidden();
+    $this->actingAs($seller)->patch(route('admin.sellers.reject', $target))->assertForbidden();
+});
+
+test('approving a non-seller target returns 404', function () {
+    $admin = User::factory()->admin()->create();
+    $otherAdmin = User::factory()->admin()->create();
+    $this->actingAs($admin)->patch(route('admin.sellers.approve', $otherAdmin))->assertNotFound();
+});
+
+test('the profile form rejects an empty phone and keeps the existing value', function () {
+    $seller = User::factory()->approvedSeller()->create(['phone' => '555-0000']);
+    $this->actingAs($seller)->from('/profile')->patch('/profile', [
+        'name' => $seller->name,
+        'email' => $seller->email,
+        'phone' => '',
+    ])->assertSessionHasErrors('phone');
+    expect($seller->fresh()->phone)->toBe('555-0000');
+});

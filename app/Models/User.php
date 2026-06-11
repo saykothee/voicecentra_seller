@@ -62,4 +62,9 @@ class User extends Authenticatable
     {
         return $this->status === 'approved';
     }
+
+    public function isRejected(): bool
+    {
+        return $this->status === 'rejected';
+    }
 }

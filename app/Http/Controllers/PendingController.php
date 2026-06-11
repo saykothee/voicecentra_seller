@@ -8,6 +8,16 @@ class PendingController extends Controller
 {
     public function show(Request $request)
     {
-        return view('pending', ['user' => $request->user()]);
+        $user = $request->user();
+
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user->isApproved()) {
+            return redirect()->route('seller.dashboard');
+        }
+
+        return view('pending', ['user' => $user]);
     }
 }

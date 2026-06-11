@@ -1,6 +1,6 @@
 <x-guest-layout>
     <div class="text-center">
-        @if ($user->status === 'rejected')
+        @if ($user->isRejected())
             <h1 class="text-2xl font-bold text-brand-navy">{{ __('messages.pending_rejected_title') }}</h1>
             <p class="mt-4 text-gray-600">{{ __('messages.pending_rejected_body') }}</p>
         @else
