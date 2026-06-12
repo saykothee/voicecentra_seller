@@ -28,6 +28,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 Route::middleware(['auth', 'seller.approved'])->group(function () {
     Route::get('/seller/dashboard', SellerDashboardController::class)->name('seller.dashboard');
+    Route::get('/seller/sales', [\App\Http\Controllers\SellerSaleController::class, 'index'])->name('seller.sales.index');
+    Route::post('/seller/sales', [\App\Http\Controllers\SellerSaleController::class, 'store'])->name('seller.sales.store');
 });
 
 Route::middleware('auth')->group(function () {
