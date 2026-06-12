@@ -37,5 +37,7 @@ class DatabaseSeeder extends Seeder
             'password' => \Illuminate\Support\Facades\Hash::make('seller'),
             'phone' => '555-0102',
         ]);
+
+        $this->call(CommissionDemoSeeder::class);
     }
 }
