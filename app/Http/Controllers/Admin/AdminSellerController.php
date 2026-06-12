@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\SellerTree;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class AdminSellerController extends Controller
 {
@@ -12,7 +14,7 @@ class AdminSellerController extends Controller
     {
         $status = $request->query('status');
 
-        $sellers = User::where('role', 'seller')
+        $sellers = User::with('parent')->where('role', 'seller')
             ->when(in_array($status, ['pending', 'approved', 'rejected'], true),
                 fn ($q) => $q->where('status', $status))
             ->latest()
@@ -46,5 +48,44 @@ class AdminSellerController extends Controller
         $user->save();
 
         return back()->with('status', __('messages.seller_rejected'));
+    }
+
+    public function editSponsor(User $user)
+    {
+        abort_unless($user->isSeller(), 404);
+
+        return view('admin.sellers.sponsor', ['seller' => $user]);
+    }
+
+    public function updateSponsor(Request $request, User $user, SellerTree $tree)
+    {
+        abort_unless($user->isSeller(), 404);
+
+        $data = $request->validate(['sponsor_email' => ['nullable', 'email']]);
+
+        if (empty($data['sponsor_email'])) {
+            $tree->changeSponsor($user, null);
+
+            return redirect()->route('admin.sellers.index')->with('status', __('messages.sponsor_updated'));
+        }
+
+        $newParent = User::where('email', $data['sponsor_email'])
+            ->where('role', 'seller')->where('status', 'approved')->first();
+
+        if (! $newParent) {
+            throw ValidationException::withMessages(['sponsor_email' => __('messages.sponsor_invalid')]);
+        }
+
+        if ($newParent->id === $user->id || $tree->isInSubtree($newParent, $user)) {
+            throw ValidationException::withMessages(['sponsor_email' => __('messages.sponsor_cycle')]);
+        }
+
+        if ($newParent->depth + $tree->subtreeHeight($user) > (int) config('commissions.max_depth')) {
+            throw ValidationException::withMessages(['sponsor_email' => __('messages.chain_full')]);
+        }
+
+        $tree->changeSponsor($user, $newParent);
+
+        return redirect()->route('admin.sellers.index')->with('status', __('messages.sponsor_updated'));
     }
 }

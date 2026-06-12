@@ -29,6 +29,7 @@
                             <th class="px-4 py-3">{{ __('messages.name') }}</th>
                             <th class="px-4 py-3">{{ __('messages.email') }}</th>
                             <th class="px-4 py-3">{{ __('messages.phone') }}</th>
+                            <th class="px-4 py-3">{{ __('messages.sponsor') }}</th>
                             <th class="px-4 py-3">{{ __('messages.status') }}</th>
                             <th class="px-4 py-3">{{ __('messages.registered') }}</th>
                             <th class="px-4 py-3 text-right">{{ __('messages.actions') }}</th>
@@ -40,6 +41,10 @@
                                 <td class="px-4 py-3 font-medium text-brand-navy">{{ $seller->name }}</td>
                                 <td class="px-4 py-3 text-gray-600">{{ $seller->email }}</td>
                                 <td class="px-4 py-3 text-gray-600">{{ $seller->phone }}</td>
+                                <td class="px-4 py-3 text-gray-600">
+                                    {{ $seller->parent?->name ?? '—' }}
+                                    <a href="{{ route('admin.sellers.sponsor.edit', $seller) }}" class="text-brand-blue underline ml-1 text-xs">{{ __('messages.change_sponsor') }}</a>
+                                </td>
                                 <td class="px-4 py-3">
                                     <span class="rounded-full px-2.5 py-0.5 text-xs font-medium
                                         @class([
@@ -69,7 +74,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">{{ __('messages.no_sellers') }}</td></tr>
+                            <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">{{ __('messages.no_sellers') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
