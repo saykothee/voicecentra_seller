@@ -27,6 +27,22 @@ class CommissionDistributor
         }
 
         DB::transaction(function () use ($sale, $approver) {
+            // Atomically claim the sale (race-safe: if a concurrent request already
+            // approved it, zero rows match and we abort before writing any ledgers).
+            $claimed = DB::table('sales')
+                ->where('id', $sale->id)
+                ->where('status', 'pending')
+                ->update([
+                    'status' => 'approved',
+                    'approved_by' => $approver->id,
+                    'approved_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            if ($claimed === 0) {
+                throw new \LogicException('Sale was already processed by another request.');
+            }
+
             $chain = $sale->seller->uplineChain();
 
             $uplineSlots = [];
@@ -78,10 +94,8 @@ class CommissionDistributor
                 ]);
             }
 
-            $sale->status = 'approved';
-            $sale->approved_by = $approver->id;
-            $sale->approved_at = now();
-            $sale->save();
+            // The row was already updated by the atomic claim; sync the model.
+            $sale->refresh();
         });
     }
 
@@ -106,6 +120,17 @@ class CommissionDistributor
         }
 
         DB::transaction(function () use ($sale) {
+            // Atomic claim — prevents a concurrent double refund writing the
+            // negative pool offset twice.
+            $claimed = DB::table('sales')
+                ->where('id', $sale->id)
+                ->where('status', 'approved')
+                ->update(['status' => 'refunded', 'updated_at' => now()]);
+
+            if ($claimed === 0) {
+                throw new \LogicException('Sale was already processed by another request.');
+            }
+
             $sale->payouts()->update(['status' => 'reversed']);
 
             $poolSum = (int) $sale->poolEntries()->sum('amount_cents');
@@ -118,8 +143,7 @@ class CommissionDistributor
                 ]);
             }
 
-            $sale->status = 'refunded';
-            $sale->save();
+            $sale->refresh();
         });
     }
 }

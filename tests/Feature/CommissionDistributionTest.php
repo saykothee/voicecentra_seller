@@ -136,3 +136,28 @@ test('only pending sales can be distributed and only approved sales refunded', f
     expect(fn () => distributor()->distribute($sale, $admin))->toThrow(LogicException::class);
     expect(fn () => distributor()->refund(Sale::factory()->create()))->toThrow(LogicException::class);
 });
+
+test('auto levels 1-3 pay an inactive upline but snapshot it as inactive', function () {
+    $admin = User::factory()->admin()->create();
+    [$sponsor, $seller] = makeChain(2); // sponsor has zero sales -> inactive
+
+    $sale = Sale::factory()->create(['seller_id' => $seller->id, 'amount_cents' => 100_000]);
+    distributor()->distribute($sale, $admin);
+
+    $l1 = CommissionPayout::where('sale_id', $sale->id)->where('level', 1)->first();
+    expect($l1->recipient_id)->toBe($sponsor->id);
+    expect($l1->status)->toBe('paid');                 // auto level pays anyway
+    expect($l1->recipient_was_active)->toBeFalse();    // but the snapshot is honest
+});
+
+test('a stale model cannot distribute a sale already processed by another request', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->approvedSeller()->create();
+    $sale = Sale::factory()->create(['seller_id' => $seller->id, 'amount_cents' => 100_000]);
+
+    $stale = Sale::find($sale->id);          // second in-memory instance, still 'pending'
+    distributor()->distribute($sale, $admin); // first request wins
+
+    expect(fn () => distributor()->distribute($stale, $admin))->toThrow(LogicException::class);
+    expect(CommissionPayout::where('sale_id', $sale->id)->where('level', 0)->count())->toBe(1);
+});
