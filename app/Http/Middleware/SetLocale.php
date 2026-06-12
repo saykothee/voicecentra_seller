@@ -10,11 +10,23 @@ class SetLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = session('locale', config('app.locale'));
+        $supported = ['en', 'es'];
 
-        if (in_array($locale, ['en', 'es'], true)) {
-            app()->setLocale($locale);
+        $locale = session('locale');
+
+        if (! in_array($locale, $supported, true)) {
+            $locale = $request->cookie('locale');
+
+            if (in_array($locale, $supported, true)) {
+                session(['locale' => $locale]); // re-hydrate after session loss (e.g. logout)
+            }
         }
+
+        if (! in_array($locale, $supported, true)) {
+            $locale = config('app.locale'); // 'en' — the default for new visitors
+        }
+
+        app()->setLocale($locale);
 
         return $next($request);
     }
