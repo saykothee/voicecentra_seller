@@ -14,6 +14,53 @@
                 <p class="mt-2 text-gray-600">{{ __('messages.seller_welcome_body') }}</p>
             </div>
 
+            <div class="grid gap-6 sm:grid-cols-3">
+                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                    <div class="text-sm text-gray-500">{{ __('messages.total_earned') }}</div>
+                    <div class="text-3xl font-bold text-brand-navy">{{ \Illuminate\Support\Number::currency($totalEarnedCents / 100) }}</div>
+                </div>
+                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                    <div class="text-sm text-gray-500">{{ __('messages.earned_30d') }}</div>
+                    <div class="text-3xl font-bold text-brand-blue">{{ \Illuminate\Support\Number::currency($earned30Cents / 100) }}</div>
+                </div>
+                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                    <div class="text-sm text-gray-500">{{ __('messages.pending_sales') }}</div>
+                    <div class="text-3xl font-bold text-amber-500">{{ $pendingSalesCount }}</div>
+                </div>
+            </div>
+
+            <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data="{ copied: false }">
+                <h4 class="font-semibold text-brand-navy">{{ __('messages.referral_link') }}</h4>
+                <div class="mt-3 flex gap-2">
+                    <input type="text" readonly value="{{ $referralLink }}"
+                           class="flex-1 rounded-lg border-gray-300 text-sm text-gray-600 bg-gray-50">
+                    <button type="button"
+                            @click="navigator.clipboard.writeText('{{ $referralLink }}'); copied = true; setTimeout(() => copied = false, 1500)"
+                            class="bg-brand-blue hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg">
+                        <span x-show="!copied">{{ __('messages.copy') }}</span>
+                        <span x-show="copied" x-cloak>{{ __('messages.copied') }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                <h4 class="font-semibold text-brand-navy">{{ __('messages.recent_commissions') }}</h4>
+                <ul class="mt-3 divide-y divide-gray-100 text-sm">
+                    @forelse ($recentPayouts as $payout)
+                        <li class="py-2 flex justify-between">
+                            <span class="text-gray-600">
+                                {{ $payout->level === 0 ? __('messages.your_sale') : 'L'.$payout->level.' · '.$payout->sale->seller->name }}
+                            </span>
+                            <span class="font-medium {{ $payout->status === 'paid' ? 'text-brand-navy' : 'text-gray-400 line-through' }}">
+                                {{ \Illuminate\Support\Number::currency($payout->amount_cents / 100) }}
+                            </span>
+                        </li>
+                    @empty
+                        <li class="py-2 text-gray-400">{{ __('messages.no_commissions') }}</li>
+                    @endforelse
+                </ul>
+            </div>
+
             <div class="grid gap-6 md:grid-cols-2">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <h4 class="font-semibold text-brand-navy">{{ __('messages.your_profile') }}</h4>

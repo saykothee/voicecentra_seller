@@ -32,6 +32,7 @@ class UserFactory extends Factory
             'role' => 'seller',
             'status' => 'pending',
             'phone' => fake()->numerify('555-####'),
+            'depth' => 1,
         ];
     }
 
@@ -61,6 +62,14 @@ class UserFactory extends Factory
             'role' => 'seller',
             'status' => 'approved',
             'approved_at' => now(),
+        ]);
+    }
+
+    public function withSponsor(\App\Models\User $sponsor): static
+    {
+        return $this->state(fn () => [
+            'parent_id' => $sponsor->id,
+            'depth' => $sponsor->depth + 1,
         ]);
     }
 }

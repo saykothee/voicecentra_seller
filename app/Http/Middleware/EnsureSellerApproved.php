@@ -13,7 +13,7 @@ class EnsureSellerApproved
         $user = $request->user();
 
         if (! $user) {
-            return $next($request); // unauthenticated handled by the auth middleware
+            return redirect()->route('login');
         }
 
         if (! $user->isSeller()) {

@@ -16,6 +16,13 @@ class AdminDashboardController extends Controller
             'rejected' => User::where('role', 'seller')->where('status', 'rejected')->count(),
         ];
 
-        return view('admin.dashboard', compact('stats'));
+        $salesStats = [
+            'pending_sales' => \App\Models\Sale::where('status', 'pending')->count(),
+            'volume_cents' => (int) \App\Models\Sale::where('status', 'approved')->sum('amount_cents'),
+            'paid_cents' => (int) \App\Models\CommissionPayout::where('status', 'paid')->sum('amount_cents'),
+            'pool_cents' => (int) \App\Models\BonusPoolEntry::sum('amount_cents'),
+        ];
+
+        return view('admin.dashboard', compact('stats', 'salesStats'));
     }
 }

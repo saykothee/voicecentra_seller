@@ -4,8 +4,11 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -66,5 +69,68 @@ class User extends Authenticatable
     public function isRejected(): bool
     {
         return $this->status === 'rejected';
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (empty($user->referral_code)) {
+                $user->referral_code = static::generateReferralCode();
+            }
+        });
+    }
+
+    public static function generateReferralCode(): string
+    {
+        do {
+            $code = strtoupper(Str::random(8));
+        } while (static::where('referral_code', $code)->exists());
+
+        return $code;
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(User::class, 'parent_id');
+    }
+
+    public function sales(): HasMany
+    {
+        return $this->hasMany(Sale::class, 'seller_id');
+    }
+
+    public function commissionPayouts(): HasMany
+    {
+        return $this->hasMany(CommissionPayout::class, 'recipient_id');
+    }
+
+    public function referralLink(): string
+    {
+        return route('register', ['ref' => $this->referral_code]);
+    }
+
+    /**
+     * The seller's uplines, level (1..9) => User. Level 1 is the direct sponsor.
+     *
+     * @return array<int, User>
+     */
+    public function uplineChain(): array
+    {
+        $chain = [];
+        $current = $this->parent;
+        $level = 1;
+
+        while ($current !== null && $level <= count(config('commissions.level_numerators'))) {
+            $chain[$level] = $current;
+            $current = $current->parent;
+            $level++;
+        }
+
+        return $chain;
     }
 }

@@ -11,10 +11,22 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                <div class="hidden space-x-6 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard', 'admin.dashboard', 'seller.dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    @if (Auth::user()->isAdmin())
+                        <x-nav-link :href="route('admin.sellers.index')" :active="request()->routeIs('admin.sellers.*')">{{ __('messages.manage_sellers') }}</x-nav-link>
+                        <x-nav-link :href="route('admin.network')" :active="request()->routeIs('admin.network')">{{ __('messages.network') }}</x-nav-link>
+                        <x-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">{{ __('messages.all_sales') }}</x-nav-link>
+                        <x-nav-link :href="route('admin.bonus-pool')" :active="request()->routeIs('admin.bonus-pool')">{{ __('messages.bonus_pool') }}</x-nav-link>
+                        <x-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-nav-link>
+                    @elseif (Auth::user()->isSeller() && Auth::user()->isApproved())
+                        <x-nav-link :href="route('seller.network')" :active="request()->routeIs('seller.network')">{{ __('messages.my_network') }}</x-nav-link>
+                        <x-nav-link :href="route('seller.sales.index')" :active="request()->routeIs('seller.sales.*')">{{ __('messages.my_sales') }}</x-nav-link>
+                        <x-nav-link :href="route('seller.commissions')" :active="request()->routeIs('seller.commissions')">{{ __('messages.my_commissions') }}</x-nav-link>
+                        <x-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -74,9 +86,21 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard', 'admin.dashboard', 'seller.dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            @if (Auth::user()->isAdmin())
+                <x-responsive-nav-link :href="route('admin.sellers.index')" :active="request()->routeIs('admin.sellers.*')">{{ __('messages.manage_sellers') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.network')" :active="request()->routeIs('admin.network')">{{ __('messages.network') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">{{ __('messages.all_sales') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.bonus-pool')" :active="request()->routeIs('admin.bonus-pool')">{{ __('messages.bonus_pool') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-responsive-nav-link>
+            @elseif (Auth::user()->isSeller() && Auth::user()->isApproved())
+                <x-responsive-nav-link :href="route('seller.network')" :active="request()->routeIs('seller.network')">{{ __('messages.my_network') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('seller.sales.index')" :active="request()->routeIs('seller.sales.*')">{{ __('messages.my_sales') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('seller.commissions')" :active="request()->routeIs('seller.commissions')">{{ __('messages.my_commissions') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
