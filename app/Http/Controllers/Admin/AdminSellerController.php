@@ -50,11 +50,27 @@ class AdminSellerController extends Controller
         return back()->with('status', __('messages.seller_rejected'));
     }
 
-    public function editSponsor(User $user)
+    public function editSponsor(User $user, SellerTree $tree)
     {
         abort_unless($user->isSeller(), 404);
 
-        return view('admin.sellers.sponsor', ['seller' => $user]);
+        // Offer only sponsors that will pass updateSponsor's validation:
+        // approved sellers outside the seller's own subtree whose depth leaves
+        // room for the moved subtree within the max chain depth.
+        $excludedIds = $tree->subtreeUsers($user->id)->pluck('id');
+        $maxParentDepth = (int) config('commissions.max_depth') - $tree->subtreeHeight($user);
+
+        $eligibleSponsors = User::where('role', 'seller')
+            ->where('status', 'approved')
+            ->whereNotIn('id', $excludedIds)
+            ->where('depth', '<=', $maxParentDepth)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.sellers.sponsor', [
+            'seller' => $user,
+            'eligibleSponsors' => $eligibleSponsors,
+        ]);
     }
 
     public function updateSponsor(Request $request, User $user, SellerTree $tree)

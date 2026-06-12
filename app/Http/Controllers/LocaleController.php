@@ -10,6 +10,7 @@ class LocaleController extends Controller
     {
         if (in_array($locale, ['en', 'es'], true)) {
             session(['locale' => $locale]);
+            cookie()->queue(cookie()->forever('locale', $locale));
         }
 
         return redirect()->back(fallback: route('landing'));

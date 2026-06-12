@@ -171,4 +171,6 @@ return [
     'pool_total' => 'To bonus pool',
     'company_cost' => 'Total commission cost',
     'invariant_ok' => 'Reconciled: seller + uplines + pool = total',
+    'new_sponsor' => 'New sponsor',
+    'none_top_level' => 'None (top level)',
 ];

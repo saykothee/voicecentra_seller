@@ -14,9 +14,17 @@
                 <form method="POST" action="{{ route('admin.sellers.sponsor.update', $seller) }}" class="mt-6 space-y-4">
                     @csrf @method('PATCH')
                     <div>
-                        <x-input-label for="sponsor_email" :value="__('messages.new_sponsor_email')" />
-                        <x-text-input id="sponsor_email" name="sponsor_email" type="email" class="mt-1 block w-full"
-                                      :value="old('sponsor_email', $seller->parent?->email)" />
+                        <x-input-label for="sponsor_email" :value="__('messages.new_sponsor')" />
+                        <select id="sponsor_email" name="sponsor_email"
+                                class="mt-1 block w-full rounded-lg border-gray-300 text-sm">
+                            <option value="">{{ __('messages.none_top_level') }}</option>
+                            @foreach ($eligibleSponsors as $candidate)
+                                <option value="{{ $candidate->email }}"
+                                        @selected(old('sponsor_email', $seller->parent?->email) === $candidate->email)>
+                                    {{ $candidate->name }} ({{ $candidate->email }})
+                                </option>
+                            @endforeach
+                        </select>
                         <x-input-error :messages="$errors->get('sponsor_email')" class="mt-2" />
                     </div>
                     <button type="submit" class="bg-brand-blue hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm">
