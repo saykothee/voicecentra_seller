@@ -48,3 +48,28 @@ test('reversed payouts are excluded from earnings totals', function () {
         ->assertOk()
         ->assertSee('0.00');
 });
+
+test('the admin dashboard shows sales and pool stats', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->approvedSeller()->create(); // top-level: most upline cents -> pool
+    $sale = Sale::factory()->create(['seller_id' => $seller->id, 'amount_cents' => 100_000]);
+    app(CommissionDistributor::class)->distribute($sale, $admin);
+
+    $this->actingAs($admin)->get('/admin/dashboard')
+        ->assertOk()
+        ->assertSee(__('messages.pool_balance'))
+        ->assertSee('99.80'); // pool = 19980 - 10000 seller = 9980 cents
+});
+
+test('the bonus pool page lists entries and balance, admin only', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->approvedSeller()->create();
+    $sale = Sale::factory()->create(['seller_id' => $seller->id, 'amount_cents' => 100_000]);
+    app(CommissionDistributor::class)->distribute($sale, $admin);
+
+    $this->actingAs($admin)->get('/admin/bonus-pool')
+        ->assertOk()
+        ->assertSee(__('messages.reason_no_upline'));
+
+    $this->actingAs($seller)->get('/admin/bonus-pool')->assertForbidden();
+});
