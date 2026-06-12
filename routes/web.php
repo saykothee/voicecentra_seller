@@ -21,6 +21,7 @@ Route::get('/pending', [PendingController::class, 'show'])
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/network', \App\Http\Controllers\Admin\AdminNetworkController::class)->name('network');
     Route::get('/sellers', [AdminSellerController::class, 'index'])->name('sellers.index');
     Route::patch('/sellers/{user}/approve', [AdminSellerController::class, 'approve'])->name('sellers.approve');
     Route::patch('/sellers/{user}/reject', [AdminSellerController::class, 'reject'])->name('sellers.reject');
@@ -32,6 +33,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 Route::middleware(['auth', 'seller.approved'])->group(function () {
     Route::get('/seller/dashboard', SellerDashboardController::class)->name('seller.dashboard');
+    Route::get('/seller/network', \App\Http\Controllers\SellerNetworkController::class)->name('seller.network');
     Route::get('/seller/sales', [\App\Http\Controllers\SellerSaleController::class, 'index'])->name('seller.sales.index');
     Route::post('/seller/sales', [\App\Http\Controllers\SellerSaleController::class, 'store'])->name('seller.sales.store');
 });
