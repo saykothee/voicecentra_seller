@@ -18,9 +18,19 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('auth.register');
+        $sponsor = null;
+
+        if ($request->filled('ref')) {
+            $sponsor = User::where('referral_code', $request->query('ref'))
+                ->where('role', 'seller')->where('status', 'approved')->first();
+        }
+
+        return view('auth.register', [
+            'sponsor' => $sponsor,
+            'ref' => $request->query('ref'),
+        ]);
     }
 
     /**
@@ -35,7 +45,23 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'phone' => ['required', 'string', 'max:30'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'ref' => ['nullable', 'string'],
         ]);
+
+        $sponsor = null;
+
+        if ($request->filled('ref')) {
+            $sponsor = User::where('referral_code', $request->input('ref'))
+                ->where('role', 'seller')->where('status', 'approved')->first();
+
+            if (! $sponsor) {
+                throw ValidationException::withMessages(['ref' => __('messages.invalid_ref')]);
+            }
+
+            if ($sponsor->depth >= (int) config('commissions.max_depth')) {
+                throw ValidationException::withMessages(['ref' => __('messages.chain_full')]);
+            }
+        }
 
         $user = User::create([
             'name' => $request->name,
@@ -43,6 +69,12 @@ class RegisteredUserController extends Controller
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
         ]);
+
+        if ($sponsor) {
+            $user->parent_id = $sponsor->id;
+            $user->depth = $sponsor->depth + 1;
+            $user->save();
+        }
 
         event(new Registered($user));
 
