@@ -72,3 +72,29 @@ test('an unknown or non-approved sponsor email is rejected', function () {
         ->patch(route('admin.sellers.sponsor.update', $seller), ['sponsor_email' => $pending->email])
         ->assertSessionHasErrors('sponsor_email');
 });
+
+test('the sponsor form lists only eligible sponsors in the dropdown', function () {
+    $admin = User::factory()->admin()->create();
+
+    $seller = User::factory()->approvedSeller()->create(['name' => 'Edited Seller']);
+    User::factory()->approvedSeller()->withSponsor($seller)->create(['name' => 'Descendant Seller']);
+    User::factory()->approvedSeller()->create(['name' => 'Eligible Sponsor']);
+    User::factory()->pending()->create(['name' => 'Pending Person']);
+
+    // A depth-9 candidate: the edited seller has height 2 (itself + descendant), 9 + 2 > 10.
+    $chain = [User::factory()->approvedSeller()->create(['name' => 'Deep Root'])];
+    for ($i = 1; $i < 9; $i++) {
+        $chain[] = User::factory()->approvedSeller()->withSponsor($chain[$i - 1])->create(['name' => 'Deep '.$i]);
+    }
+
+    $response = $this->actingAs($admin)
+        ->get(route('admin.sellers.sponsor.edit', $seller))
+        ->assertOk();
+
+    $response->assertSee('Eligible Sponsor');
+    $response->assertSee(__('messages.none_top_level'));
+    $response->assertSee('Deep 7');                // depth 8: 8 + 2 = 10, still eligible
+    $response->assertDontSee('Descendant Seller'); // own subtree (covers self-exclusion path)
+    $response->assertDontSee('Pending Person');    // not approved
+    $response->assertDontSee('Deep 8');            // depth 9: 9 + 2 > 10
+});

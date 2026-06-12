@@ -166,4 +166,6 @@ return [
     'pool_total' => 'Al fondo de bonos',
     'company_cost' => 'Costo total de comisiones',
     'invariant_ok' => 'Conciliado: vendedor + ascendentes + fondo = total',
+    'new_sponsor' => 'Nuevo patrocinador',
+    'none_top_level' => 'Ninguno (primer nivel)',
 ];
