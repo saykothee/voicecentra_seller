@@ -161,3 +161,41 @@ test('a stale model cannot distribute a sale already processed by another reques
     expect(fn () => distributor()->distribute($stale, $admin))->toThrow(LogicException::class);
     expect(CommissionPayout::where('sale_id', $sale->id)->where('level', 0)->count())->toBe(1);
 });
+
+test('a full nine-level chain pays every upline with no no_upline pool entries', function () {
+    $admin = User::factory()->admin()->create();
+    $chain = makeChain(10); // depth 1..10; seller at depth 10 has exactly 9 uplines
+    $seller = $chain[9];
+
+    // make ALL uplines active so levels 4-9 pay
+    foreach (range(0, 8) as $i) {
+        Sale::factory()->approved()->count(2)->create([
+            'seller_id' => $chain[$i]->id,
+            'sold_at' => now()->subDays(10),
+        ]);
+    }
+
+    $sale = Sale::factory()->create(['seller_id' => $seller->id, 'amount_cents' => 100_000, 'sold_at' => now()]);
+    distributor()->distribute($sale, $admin);
+
+    $payouts = CommissionPayout::where('sale_id', $sale->id)->get();
+    expect($payouts)->toHaveCount(10); // seller + 9 uplines
+    expect($payouts->firstWhere('level', 9)->amount_cents)->toBe(19);
+    expect(BonusPoolEntry::where('sale_id', $sale->id)->where('reason', 'no_upline')->count())->toBe(0);
+    // only the rounding remainder goes to the pool
+    expect((int) BonusPoolEntry::where('sale_id', $sale->id)->sum('amount_cents'))->toBe(1);
+});
+
+test('a stale model cannot refund a sale already refunded by another request', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->approvedSeller()->create();
+    $sale = Sale::factory()->create(['seller_id' => $seller->id, 'amount_cents' => 100_000]);
+    distributor()->distribute($sale, $admin);
+
+    $live = $sale->fresh();
+    $stale = Sale::find($sale->id);
+    distributor()->refund($live);
+
+    expect(fn () => distributor()->refund($stale))->toThrow(LogicException::class);
+    expect(\App\Models\BonusPoolEntry::where('sale_id', $sale->id)->where('reason', 'refund_reversal')->count())->toBe(1);
+});

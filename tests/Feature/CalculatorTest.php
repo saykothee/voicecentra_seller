@@ -42,3 +42,19 @@ test('inactive levels route to the pool in the results', function () {
     ])->assertOk()
       ->assertSee(__('messages.dest_pool_inactive'));
 });
+
+test('invalid calculator inputs are rejected with validation errors', function () {
+    $seller = User::factory()->approvedSeller()->create();
+
+    $this->actingAs($seller)->from('/calculator')->post('/calculator', [
+        'amount' => '0', 'uplines' => 3,
+    ])->assertSessionHasErrors('amount');
+
+    $this->actingAs($seller)->from('/calculator')->post('/calculator', [
+        'amount' => '100', 'uplines' => 10,
+    ])->assertSessionHasErrors('uplines');
+
+    $this->actingAs($seller)->from('/calculator')->post('/calculator', [
+        'amount' => 'abc', 'uplines' => 3,
+    ])->assertSessionHasErrors('amount');
+});

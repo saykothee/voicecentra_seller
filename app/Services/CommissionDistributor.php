@@ -43,7 +43,8 @@ class CommissionDistributor
                 throw new \LogicException('Sale was already processed by another request.');
             }
 
-            $chain = $sale->seller->uplineChain();
+            $seller = User::findOrFail($sale->seller_id);
+            $chain = $seller->uplineChain();
 
             $uplineSlots = [];
             foreach ($chain as $level => $upline) {

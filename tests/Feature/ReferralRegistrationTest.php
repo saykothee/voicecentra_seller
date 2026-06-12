@@ -66,3 +66,16 @@ test('the register page shows the sponsor banner for a valid ref', function () {
         ->assertOk()
         ->assertSee('Sponsor Name');
 });
+
+test('a signup under a depth-9 sponsor lands exactly at depth 10', function () {
+    $users = [User::factory()->approvedSeller()->create()];
+    for ($i = 1; $i < 9; $i++) {
+        $users[] = User::factory()->approvedSeller()->withSponsor($users[$i - 1])->create();
+    }
+    expect($users[8]->depth)->toBe(9);
+
+    $this->post('/register', registrationPayload(['ref' => $users[8]->referral_code]));
+
+    $user = User::where('email', 'new@example.com')->first();
+    expect($user->depth)->toBe(10);
+});

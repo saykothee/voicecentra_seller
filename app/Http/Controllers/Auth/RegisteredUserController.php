@@ -8,6 +8,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
@@ -63,18 +64,22 @@ class RegisteredUserController extends Controller
             }
         }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = DB::transaction(function () use ($request, $sponsor) {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => Hash::make($request->password),
+            ]);
 
-        if ($sponsor) {
-            $user->parent_id = $sponsor->id;
-            $user->depth = $sponsor->depth + 1;
-            $user->save();
-        }
+            if ($sponsor) {
+                $user->parent_id = $sponsor->id;
+                $user->depth = $sponsor->depth + 1;
+                $user->save();
+            }
+
+            return $user;
+        });
 
         event(new Registered($user));
 

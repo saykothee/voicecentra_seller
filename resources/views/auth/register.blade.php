@@ -4,7 +4,7 @@
 
         @if (($sponsor ?? null) !== null)
             <div class="mb-4 rounded-lg bg-blue-50 text-brand-blue px-4 py-3 text-sm">
-                {{ __('messages.sponsored_by', ['name' => '']) }} <span class="font-semibold">{{ $sponsor->name }}</span>
+                {{ __('messages.sponsored_by', ['name' => $sponsor->name]) }}
             </div>
         @endif
         <input type="hidden" name="ref" value="{{ old('ref', $ref ?? '') }}">

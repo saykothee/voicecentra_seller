@@ -80,6 +80,8 @@ class AdminSellerController extends Controller
             throw ValidationException::withMessages(['sponsor_email' => __('messages.sponsor_cycle')]);
         }
 
+        $newParent = $newParent->fresh();
+
         if ($newParent->depth + $tree->subtreeHeight($user) > (int) config('commissions.max_depth')) {
             throw ValidationException::withMessages(['sponsor_email' => __('messages.chain_full')]);
         }
