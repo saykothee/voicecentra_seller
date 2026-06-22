@@ -6,16 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\ExternalSale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ExternalSaleController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'seller_id' => ['required', 'integer', 'exists:users,id'],
+            'seller_id' => ['required', 'integer', Rule::exists('users', 'id')->where('role', 'seller')],
             'sale_date' => ['required', 'date'],
             'paid_at' => ['nullable', 'date'],
-            'amount' => ['required', 'numeric', 'min:0'],
+            'amount' => ['required', 'numeric', 'min:0', 'max:1000000'],
             'paid' => ['required', 'boolean'],
             'free_trial' => ['required', 'boolean'],
         ]);

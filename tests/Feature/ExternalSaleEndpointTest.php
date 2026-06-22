@@ -67,6 +67,24 @@ test('an expired token is rejected with 401', function () {
         ->assertStatus(401);
 });
 
+test('a token without an exp claim is rejected with 401', function () {
+    config(['external_sales.jwt_secret' => TEST_SECRET]);
+    $seller = User::factory()->approvedSeller()->create();
+    $noExp = JWT::encode(['iss' => 'external', 'iat' => time()], TEST_SECRET, 'HS256');
+
+    $this->withToken($noExp)
+        ->postJson('/api/external-sales', validPayload($seller->id))
+        ->assertStatus(401);
+});
+
+test('a seller_id that is not a seller (e.g. an admin) returns 422', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->withToken(validToken())
+        ->postJson('/api/external-sales', validPayload($admin->id))
+        ->assertStatus(422)->assertJsonValidationErrors('seller_id');
+});
+
 test('an external sale persists with cents and boolean casts', function () {
     $seller = User::factory()->approvedSeller()->create();
 

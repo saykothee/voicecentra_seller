@@ -20,8 +20,14 @@ class VerifyExternalJwt
         }
 
         try {
-            JWT::decode($token, new Key($secret, 'HS256'));
+            $payload = JWT::decode($token, new Key($secret, 'HS256'));
         } catch (\Throwable $e) {
+            // bad signature, expired (exp), not-yet-valid (nbf), malformed, etc.
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        // Require an expiry so a leaked token can't be replayed forever.
+        if (! isset($payload->exp)) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 

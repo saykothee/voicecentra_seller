@@ -23,8 +23,12 @@ seller.
   - Decodes/verifies it with HS256 against the shared secret
     (`JWT::decode($token, new Key($secret, 'HS256'))`). firebase/php-jwt
     automatically rejects bad signatures and enforces `exp`/`nbf`/`iat` when present.
-  - On any failure (missing header, malformed token, bad signature, expired) →
-    responds `401` JSON `{"message": "Unauthenticated."}`. No session, no redirect.
+    NOTE: HS256 in firebase/php-jwt v7 requires the secret to be ≥ 32 bytes.
+  - **Requires an `exp` claim**: after a successful decode, if the token has no
+    `exp`, it is rejected (so a leaked token can't be replayed forever).
+  - On any failure (missing header, malformed token, bad signature, expired,
+    missing `exp`) → responds `401` JSON `{"message": "Unauthenticated."}`.
+    No session, no redirect.
 - The JWT only authenticates the caller. The sale payload is the JSON body, not the
   token claims.
 
@@ -74,12 +78,16 @@ seller.
 ```
 
 **Validation** (`422` with Laravel's JSON error bag on failure):
-- `seller_id` — required, integer, `exists:users,id`
+- `seller_id` — required, integer, must exist in `users` AND have `role = seller`
+  (`Rule::exists('users','id')->where('role','seller')`) — an admin id is rejected
 - `sale_date` — required, date
 - `paid_at` — nullable, date
-- `amount` — required, numeric, `min:0`
+- `amount` — required, numeric, `min:0`, `max:1000000`
 - `paid` — required, boolean
 - `free_trial` — required, boolean
+
+**Rate limiting:** the route group applies `throttle:120,1` (120 req/min per IP) —
+tune to the sender's volume.
 
 **Controller behavior:** convert `amount` to cents
 (`(int) round($amount * 100)`), create the `ExternalSale` (set `seller_id` and the
