@@ -178,4 +178,13 @@ return [
     'role_seller' => 'Vendedor',
     'role_admin' => 'Administrador',
     'profile_updated' => 'Perfil actualizado.',
+
+    // Configuración / ventas mínimas
+    'configuration' => 'Configuración',
+    'min_sales_nav' => 'Ventas mínimas',
+    'min_sales_title' => 'Ventas mínimas por edad',
+    'min_sales_intro' => 'Define el número mínimo de ventas requerido para cada rango de edad.',
+    'age_range' => 'Rango de edad',
+    'minimum_sales' => 'Ventas mínimas',
+    'min_sales_updated' => 'Ventas mínimas actualizadas.',
 ];
