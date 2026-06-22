@@ -21,6 +21,26 @@
                         <x-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">{{ __('messages.all_sales') }}</x-nav-link>
                         <x-nav-link :href="route('admin.bonus-pool')" :active="request()->routeIs('admin.bonus-pool')">{{ __('messages.bonus_pool') }}</x-nav-link>
                         <x-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-nav-link>
+                        <div class="hidden sm:flex sm:items-center">
+                            <x-dropdown align="left" width="48">
+                                <x-slot name="trigger">
+                                    <button class="inline-flex items-center h-full px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none
+                                        {{ request()->routeIs('admin.configuration.*') ? 'border-brand-blue text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                                        <div>{{ __('messages.configuration') }}</div>
+                                        <div class="ms-1">
+                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                </x-slot>
+                                <x-slot name="content">
+                                    <x-dropdown-link :href="route('admin.configuration.min-sales')">
+                                        {{ __('messages.min_sales_nav') }}
+                                    </x-dropdown-link>
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
                     @elseif (Auth::user()->isSeller() && Auth::user()->isApproved())
                         <x-nav-link :href="route('seller.network')" :active="request()->routeIs('seller.network')">{{ __('messages.my_network') }}</x-nav-link>
                         <x-nav-link :href="route('seller.sales.index')" :active="request()->routeIs('seller.sales.*')">{{ __('messages.my_sales') }}</x-nav-link>
@@ -95,6 +115,10 @@
                 <x-responsive-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">{{ __('messages.all_sales') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.bonus-pool')" :active="request()->routeIs('admin.bonus-pool')">{{ __('messages.bonus_pool') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-responsive-nav-link>
+                <div class="px-4 pt-2 text-xs font-semibold uppercase text-gray-400">{{ __('messages.configuration') }}</div>
+                <x-responsive-nav-link :href="route('admin.configuration.min-sales')" :active="request()->routeIs('admin.configuration.min-sales')">
+                    {{ __('messages.min_sales_nav') }}
+                </x-responsive-nav-link>
             @elseif (Auth::user()->isSeller() && Auth::user()->isApproved())
                 <x-responsive-nav-link :href="route('seller.network')" :active="request()->routeIs('seller.network')">{{ __('messages.my_network') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('seller.sales.index')" :active="request()->routeIs('seller.sales.*')">{{ __('messages.my_sales') }}</x-responsive-nav-link>
