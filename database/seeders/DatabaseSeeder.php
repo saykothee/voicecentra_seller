@@ -39,5 +39,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(CommissionDemoSeeder::class);
+        $this->call(MinSalesRequirementSeeder::class);
     }
 }
