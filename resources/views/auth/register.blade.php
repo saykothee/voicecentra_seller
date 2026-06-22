@@ -32,6 +32,15 @@
             <x-input-error :messages="$errors->get('phone')" class="mt-2" />
         </div>
 
+        <!-- Date of birth -->
+        <div class="mt-4">
+            <x-input-label for="date_of_birth" :value="__('messages.date_of_birth')" />
+            <x-text-input id="date_of_birth" class="block mt-1 w-full" type="date" name="date_of_birth"
+                          :value="old('date_of_birth')" required
+                          max="{{ now()->subYears(18)->toDateString() }}" />
+            <x-input-error :messages="$errors->get('date_of_birth')" class="mt-2" />
+        </div>
+
         <!-- Password -->
         <div class="mt-4">
             <x-input-label for="password" :value="__('Password')" />

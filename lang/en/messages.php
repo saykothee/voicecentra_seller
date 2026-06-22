@@ -173,4 +173,14 @@ return [
     'invariant_ok' => 'Reconciled: seller + uplines + pool = total',
     'new_sponsor' => 'New sponsor',
     'none_top_level' => 'None (top level)',
+
+    // Profile edit / DOB
+    'edit' => 'Edit',
+    'edit_profile' => 'Edit profile',
+    'date_of_birth' => 'Date of birth',
+    'age' => 'Age',
+    'role' => 'Role',
+    'role_seller' => 'Seller',
+    'role_admin' => 'Admin',
+    'profile_updated' => 'Profile updated.',
 ];

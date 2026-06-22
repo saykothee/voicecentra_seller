@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\SellerTree;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AdminSellerController extends Controller
@@ -48,6 +49,51 @@ class AdminSellerController extends Controller
         $user->save();
 
         return back()->with('status', __('messages.seller_rejected'));
+    }
+
+    // Intentionally edits ANY user, not just sellers (admin-only tool). Role is
+    // editable both ways, so a promoted seller must stay editable as an admin to
+    // be demoted later; restricting to isSeller() would strand them. The
+    // self-lockout guard in update() prevents an admin demoting their own account.
+    public function edit(User $user)
+    {
+        return view('admin.sellers.edit', ['seller' => $user]);
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'phone' => ['required', 'string', 'max:30'],
+            'date_of_birth' => ['nullable', 'date', 'after:1900-01-01', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+            'status' => ['required', 'in:pending,approved,rejected'],
+            'role' => ['required', 'in:seller,admin'],
+        ]);
+
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->phone = $data['phone'];
+        $user->date_of_birth = $data['date_of_birth'] ?? null;
+
+        // Self-lockout guard: never change your own role/status from this admin form.
+        if ($user->id !== auth()->id()) {
+            $user->role = $data['role'];
+
+            if ($data['status'] === 'approved' && $user->status !== 'approved') {
+                $user->status = 'approved';
+                $user->approved_at = now();
+                $user->approved_by = auth()->id();
+            } elseif ($data['status'] !== 'approved') {
+                $user->status = $data['status'];
+                $user->approved_at = null;
+                $user->approved_by = null;
+            }
+        }
+
+        $user->save();
+
+        return redirect()->route('admin.sellers.index')->with('status', __('messages.profile_updated'));
     }
 
     public function editSponsor(User $user, SellerTree $tree)

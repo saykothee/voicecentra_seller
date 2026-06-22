@@ -10,6 +10,7 @@ function registrationPayload(array $overrides = []): array
         'name' => 'New Seller',
         'email' => 'new@example.com',
         'phone' => '555-0100',
+        'date_of_birth' => '1990-01-01',
         'password' => 'password',
         'password_confirmation' => 'password',
     ], $overrides);
