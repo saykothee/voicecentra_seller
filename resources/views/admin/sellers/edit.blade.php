@@ -26,7 +26,7 @@
                     <div>
                         <x-input-label for="phone" :value="__('messages.phone')" />
                         <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full"
-                                      :value="old('phone', $seller->phone)" required />
+                                      :value="old('phone', $seller->phone)" />
                         <x-input-error :messages="$errors->get('phone')" class="mt-2" />
                     </div>
 

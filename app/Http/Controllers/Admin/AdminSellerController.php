@@ -65,7 +65,7 @@ class AdminSellerController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone' => ['required', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:30'],
             'date_of_birth' => ['nullable', 'date', 'after:1900-01-01', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'status' => ['required', 'in:pending,approved,rejected'],
             'role' => ['required', 'in:seller,admin'],
@@ -73,7 +73,7 @@ class AdminSellerController extends Controller
 
         $user->name = $data['name'];
         $user->email = $data['email'];
-        $user->phone = $data['phone'];
+        $user->phone = $data['phone'] ?? null;
         $user->date_of_birth = $data['date_of_birth'] ?? null;
 
         // Self-lockout guard: never change your own role/status from this admin form.

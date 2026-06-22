@@ -152,6 +152,22 @@ test('re-approving an already-approved seller leaves the audit fields untouched'
     expect($seller->approved_at->toDateTimeString())->toBe($approvedAt->toDateTimeString());
 });
 
+test('admin update allows an empty phone', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->approvedSeller()->create(['phone' => '555-1234']);
+
+    $this->actingAs($admin)->patch(route('admin.sellers.update', $seller), [
+        'name' => $seller->name,
+        'email' => $seller->email,
+        'phone' => '',
+        'date_of_birth' => null,
+        'status' => $seller->status,
+        'role' => 'seller',
+    ])->assertRedirect(route('admin.sellers.index'))->assertSessionHasNoErrors();
+
+    expect($seller->fresh()->phone)->toBeNull();
+});
+
 test('email uniqueness ignores the edited user', function () {
     $admin = User::factory()->admin()->create();
     $seller = User::factory()->approvedSeller()->create(['email' => 'keep@example.com']);
