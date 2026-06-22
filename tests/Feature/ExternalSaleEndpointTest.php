@@ -86,3 +86,68 @@ test('an external sale persists with cents and boolean casts', function () {
     expect($fresh->sale_date->format('Y-m-d'))->toBe('2026-06-20');
     expect($fresh->seller->id)->toBe($seller->id);
 });
+
+test('a valid request records an external sale and returns 201', function () {
+    $seller = User::factory()->approvedSeller()->create();
+
+    $response = $this->withToken(validToken())
+        ->postJson('/api/external-sales', validPayload($seller->id));
+
+    $response->assertStatus(201)->assertJson(['status' => 'recorded']);
+
+    $sale = ExternalSale::first();
+    expect($sale->seller_id)->toBe($seller->id);
+    expect($sale->amount_cents)->toBe(4999);
+    expect($sale->paid)->toBeTrue();
+    expect($sale->free_trial)->toBeFalse();
+    expect($sale->sale_date->format('Y-m-d'))->toBe('2026-06-20');
+    expect($response->json('id'))->toBe($sale->id);
+});
+
+test('a whole-number amount converts to cents correctly', function () {
+    $seller = User::factory()->approvedSeller()->create();
+
+    $this->withToken(validToken())
+        ->postJson('/api/external-sales', [...validPayload($seller->id), 'amount' => 100])
+        ->assertStatus(201);
+
+    expect(ExternalSale::first()->amount_cents)->toBe(10000);
+});
+
+test('an unpaid sale with null paid_at is accepted', function () {
+    $seller = User::factory()->approvedSeller()->create();
+
+    $this->withToken(validToken())
+        ->postJson('/api/external-sales', [
+            ...validPayload($seller->id), 'paid' => false, 'paid_at' => null,
+        ])
+        ->assertStatus(201);
+
+    $sale = ExternalSale::first();
+    expect($sale->paid)->toBeFalse();
+    expect($sale->paid_at)->toBeNull();
+});
+
+test('a missing required field returns 422', function () {
+    $seller = User::factory()->approvedSeller()->create();
+    $payload = validPayload($seller->id);
+    unset($payload['amount']);
+
+    $this->withToken(validToken())
+        ->postJson('/api/external-sales', $payload)
+        ->assertStatus(422)->assertJsonValidationErrors('amount');
+});
+
+test('an unknown seller_id returns 422', function () {
+    $this->withToken(validToken())
+        ->postJson('/api/external-sales', validPayload(999999))
+        ->assertStatus(422)->assertJsonValidationErrors('seller_id');
+});
+
+test('a negative amount returns 422', function () {
+    $seller = User::factory()->approvedSeller()->create();
+
+    $this->withToken(validToken())
+        ->postJson('/api/external-sales', [...validPayload($seller->id), 'amount' => -5])
+        ->assertStatus(422)->assertJsonValidationErrors('amount');
+});
