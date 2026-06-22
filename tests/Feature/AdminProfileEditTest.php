@@ -57,3 +57,130 @@ test('registration rejects an under-18 date_of_birth', function () {
 
     expect(User::where('email', 'young@example.com')->exists())->toBeFalse();
 });
+
+test('admin can open the edit page for a seller', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->approvedSeller()->create(['name' => 'Edit Me']);
+
+    $this->actingAs($admin)->get(route('admin.sellers.edit', $seller))
+        ->assertOk()
+        ->assertSee('Edit Me')
+        ->assertSee(__('messages.date_of_birth'));
+});
+
+test('admin update saves name, email, phone and date_of_birth', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->approvedSeller()->create();
+
+    $this->actingAs($admin)->patch(route('admin.sellers.update', $seller), [
+        'name' => 'New Name',
+        'email' => 'new.email@example.com',
+        'phone' => '555-9999',
+        'date_of_birth' => '1988-02-20',
+        'status' => $seller->status,
+        'role' => 'seller',
+    ])->assertRedirect(route('admin.sellers.index'));
+
+    $seller->refresh();
+    expect($seller->name)->toBe('New Name');
+    expect($seller->email)->toBe('new.email@example.com');
+    expect($seller->phone)->toBe('555-9999');
+    expect($seller->date_of_birth->format('Y-m-d'))->toBe('1988-02-20');
+});
+
+test('admin can change role and approving via edit stamps the audit fields', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->pending()->create();
+
+    $this->actingAs($admin)->patch(route('admin.sellers.update', $seller), [
+        'name' => $seller->name,
+        'email' => $seller->email,
+        'phone' => $seller->phone,
+        'date_of_birth' => null,
+        'status' => 'approved',
+        'role' => 'admin',
+    ])->assertRedirect();
+
+    $seller->refresh();
+    expect($seller->role)->toBe('admin');
+    expect($seller->status)->toBe('approved');
+    expect($seller->approved_by)->toBe($admin->id);
+    expect($seller->approved_at)->not->toBeNull();
+});
+
+test('moving a seller away from approved clears the audit fields', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->approvedSeller()->create(['approved_by' => $admin->id, 'approved_at' => now()]);
+
+    $this->actingAs($admin)->patch(route('admin.sellers.update', $seller), [
+        'name' => $seller->name,
+        'email' => $seller->email,
+        'phone' => $seller->phone,
+        'date_of_birth' => null,
+        'status' => 'rejected',
+        'role' => 'seller',
+    ])->assertRedirect();
+
+    $seller->refresh();
+    expect($seller->status)->toBe('rejected');
+    expect($seller->approved_at)->toBeNull();
+    expect($seller->approved_by)->toBeNull();
+});
+
+test('email uniqueness ignores the edited user', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->approvedSeller()->create(['email' => 'keep@example.com']);
+
+    $this->actingAs($admin)->patch(route('admin.sellers.update', $seller), [
+        'name' => $seller->name,
+        'email' => 'keep@example.com',
+        'phone' => $seller->phone,
+        'date_of_birth' => null,
+        'status' => $seller->status,
+        'role' => 'seller',
+    ])->assertRedirect();
+
+    expect($seller->fresh()->email)->toBe('keep@example.com');
+});
+
+test('admin update rejects an under-18 date_of_birth', function () {
+    $admin = User::factory()->admin()->create();
+    $seller = User::factory()->approvedSeller()->create();
+
+    $this->actingAs($admin)->patch(route('admin.sellers.update', $seller), [
+        'name' => $seller->name,
+        'email' => $seller->email,
+        'phone' => $seller->phone,
+        'date_of_birth' => now()->subYears(10)->toDateString(),
+        'status' => $seller->status,
+        'role' => 'seller',
+    ])->assertSessionHasErrors('date_of_birth');
+});
+
+test('an admin editing their own account cannot change their own role or status', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)->patch(route('admin.sellers.update', $admin), [
+        'name' => 'Renamed Admin',
+        'email' => $admin->email,
+        'phone' => $admin->phone,
+        'date_of_birth' => null,
+        'status' => 'rejected',
+        'role' => 'seller',
+    ])->assertRedirect();
+
+    $admin->refresh();
+    expect($admin->name)->toBe('Renamed Admin');
+    expect($admin->role)->toBe('admin');
+    expect($admin->status)->toBe('approved');
+});
+
+test('non-admins are forbidden from the edit and update routes', function () {
+    $seller = User::factory()->approvedSeller()->create();
+    $other = User::factory()->approvedSeller()->create();
+
+    $this->actingAs($seller)->get(route('admin.sellers.edit', $other))->assertForbidden();
+    $this->actingAs($seller)->patch(route('admin.sellers.update', $other), [
+        'name' => 'x', 'email' => 'x@example.com', 'phone' => '1', 'status' => 'approved', 'role' => 'seller',
+    ])->assertForbidden();
+});

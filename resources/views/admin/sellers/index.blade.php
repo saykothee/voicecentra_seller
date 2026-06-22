@@ -58,6 +58,7 @@
                                 <td class="px-4 py-3 text-gray-500">{{ $seller->created_at->format('Y-m-d') }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex justify-end gap-2">
+                                        <a href="{{ route('admin.sellers.edit', $seller) }}" class="text-brand-blue font-medium">{{ __('messages.edit') }}</a>
                                         @if ($seller->status !== 'approved')
                                             <form method="POST" action="{{ route('admin.sellers.approve', $seller) }}">
                                                 @csrf @method('PATCH')

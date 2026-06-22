@@ -25,6 +25,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/sellers', [AdminSellerController::class, 'index'])->name('sellers.index');
     Route::patch('/sellers/{user}/approve', [AdminSellerController::class, 'approve'])->name('sellers.approve');
     Route::patch('/sellers/{user}/reject', [AdminSellerController::class, 'reject'])->name('sellers.reject');
+    Route::get('/sellers/{user}/edit', [AdminSellerController::class, 'edit'])->name('sellers.edit');
+    Route::patch('/sellers/{user}', [AdminSellerController::class, 'update'])->name('sellers.update');
     Route::get('/sellers/{user}/sponsor', [AdminSellerController::class, 'editSponsor'])->name('sellers.sponsor.edit');
     Route::patch('/sellers/{user}/sponsor', [AdminSellerController::class, 'updateSponsor'])->name('sellers.sponsor.update');
     Route::get('/sales', [\App\Http\Controllers\Admin\AdminSaleController::class, 'index'])->name('sales.index');
