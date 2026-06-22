@@ -23,6 +23,7 @@ test('new registrations become pending sellers', function () {
         'name' => 'Jane Seller',
         'email' => 'jane@example.com',
         'phone' => '555-0100',
+        'date_of_birth' => '1990-01-01',
         'password' => 'password',
         'password_confirmation' => 'password',
     ]);
