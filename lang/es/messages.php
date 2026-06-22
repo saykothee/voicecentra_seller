@@ -168,4 +168,14 @@ return [
     'invariant_ok' => 'Conciliado: vendedor + ascendentes + fondo = total',
     'new_sponsor' => 'Nuevo patrocinador',
     'none_top_level' => 'Ninguno (primer nivel)',
+
+    // Edición de perfil / fecha de nacimiento
+    'edit' => 'Editar',
+    'edit_profile' => 'Editar perfil',
+    'date_of_birth' => 'Fecha de nacimiento',
+    'age' => 'Edad',
+    'role' => 'Rol',
+    'role_seller' => 'Vendedor',
+    'role_admin' => 'Administrador',
+    'profile_updated' => 'Perfil actualizado.',
 ];
