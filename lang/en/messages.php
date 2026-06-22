@@ -183,4 +183,13 @@ return [
     'role_seller' => 'Seller',
     'role_admin' => 'Admin',
     'profile_updated' => 'Profile updated.',
+
+    // Configuration / min sales
+    'configuration' => 'Configuration',
+    'min_sales_nav' => 'Min sales',
+    'min_sales_title' => 'Minimum sales by age',
+    'min_sales_intro' => 'Set the minimum number of sales required for each age bracket.',
+    'age_range' => 'Age range',
+    'minimum_sales' => 'Minimum sales',
+    'min_sales_updated' => 'Minimum sales updated.',
 ];

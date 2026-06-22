@@ -34,6 +34,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('/sales/{sale}/reject', [\App\Http\Controllers\Admin\AdminSaleController::class, 'reject'])->name('sales.reject');
     Route::patch('/sales/{sale}/refund', [\App\Http\Controllers\Admin\AdminSaleController::class, 'refund'])->name('sales.refund');
     Route::get('/bonus-pool', \App\Http\Controllers\Admin\AdminBonusPoolController::class)->name('bonus-pool');
+    Route::get('/configuration/min-sales', [\App\Http\Controllers\Admin\AdminMinSalesController::class, 'index'])->name('configuration.min-sales');
+    Route::patch('/configuration/min-sales', [\App\Http\Controllers\Admin\AdminMinSalesController::class, 'update'])->name('configuration.min-sales.update');
 });
 
 Route::middleware(['auth', 'seller.approved'])->group(function () {
