@@ -51,6 +51,10 @@ class AdminSellerController extends Controller
         return back()->with('status', __('messages.seller_rejected'));
     }
 
+    // Intentionally edits ANY user, not just sellers (admin-only tool). Role is
+    // editable both ways, so a promoted seller must stay editable as an admin to
+    // be demoted later; restricting to isSeller() would strand them. The
+    // self-lockout guard in update() prevents an admin demoting their own account.
     public function edit(User $user)
     {
         return view('admin.sellers.edit', ['seller' => $user]);

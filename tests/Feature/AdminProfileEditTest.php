@@ -127,6 +127,31 @@ test('moving a seller away from approved clears the audit fields', function () {
     expect($seller->approved_by)->toBeNull();
 });
 
+test('re-approving an already-approved seller leaves the audit fields untouched', function () {
+    $originalAdmin = User::factory()->admin()->create();
+    $approvedAt = now()->subDays(5);
+    $seller = User::factory()->approvedSeller()->create([
+        'approved_by' => $originalAdmin->id,
+        'approved_at' => $approvedAt,
+    ]);
+
+    $actingAdmin = User::factory()->admin()->create();
+    $this->actingAs($actingAdmin)->patch(route('admin.sellers.update', $seller), [
+        'name' => 'Still Approved',
+        'email' => $seller->email,
+        'phone' => $seller->phone,
+        'date_of_birth' => null,
+        'status' => 'approved',
+        'role' => 'seller',
+    ])->assertRedirect();
+
+    $seller->refresh();
+    expect($seller->name)->toBe('Still Approved');
+    expect($seller->status)->toBe('approved');
+    expect($seller->approved_by)->toBe($originalAdmin->id); // not re-stamped to the acting admin
+    expect($seller->approved_at->toDateTimeString())->toBe($approvedAt->toDateTimeString());
+});
+
 test('email uniqueness ignores the edited user', function () {
     $admin = User::factory()->admin()->create();
     $seller = User::factory()->approvedSeller()->create(['email' => 'keep@example.com']);
