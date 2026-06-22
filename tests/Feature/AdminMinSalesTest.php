@@ -51,6 +51,14 @@ test('the update rejects a non-integer min_sales', function () {
         ->assertSessionHasErrors('min_sales.'.$id);
 });
 
+test('the Configuration menu shows for admins and is hidden from sellers', function () {
+    $admin = User::factory()->admin()->create();
+    $this->actingAs($admin)->get('/admin/dashboard')->assertSee(__('messages.configuration'));
+
+    $seller = User::factory()->approvedSeller()->create();
+    $this->actingAs($seller)->get('/seller/dashboard')->assertDontSee(__('messages.configuration'));
+});
+
 test('non-admins cannot view or update min sales', function () {
     $seller = User::factory()->approvedSeller()->create();
 

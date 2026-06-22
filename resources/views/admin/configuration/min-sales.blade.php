@@ -27,10 +27,10 @@
                                 <tr>
                                     <td class="px-4 py-3 font-medium text-brand-navy">{{ $requirement->label() }}</td>
                                     <td class="px-4 py-3">
-                                        <input type="number" min="0" step="1"
-                                               name="min_sales[{{ $requirement->id }}]"
-                                               value="{{ old('min_sales.'.$requirement->id, $requirement->min_sales) }}"
-                                               class="w-32 rounded-lg border-gray-300 text-sm" required>
+                                        <x-text-input type="number" min="0" step="1"
+                                                      name="min_sales[{{ $requirement->id }}]"
+                                                      :value="old('min_sales.'.$requirement->id, $requirement->min_sales)"
+                                                      class="w-32" required />
                                         <x-input-error :messages="$errors->get('min_sales.'.$requirement->id)" class="mt-1" />
                                     </td>
                                 </tr>
