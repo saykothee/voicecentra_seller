@@ -49,6 +49,8 @@ Route::middleware(['auth', 'seller.approved'])->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/calculator', [\App\Http\Controllers\CalculatorController::class, 'show'])->name('calculator');
     Route::post('/calculator', [\App\Http\Controllers\CalculatorController::class, 'compute'])->name('calculator.compute');
+    Route::get('/calculator-2', [\App\Http\Controllers\NetworkCalculatorController::class, 'show'])->name('calculator2');
+    Route::post('/calculator-2', [\App\Http\Controllers\NetworkCalculatorController::class, 'compute'])->name('calculator2.compute');
 });
 
 Route::middleware('auth')->group(function () {
