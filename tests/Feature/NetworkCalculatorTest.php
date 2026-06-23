@@ -89,3 +89,11 @@ test('a pending seller cannot post to compute', function () {
         ->post('/calculator-2', ['seller_id' => $seller->id, 'amount' => '100'])
         ->assertForbidden();
 });
+
+test('the calculator 2.0 page exposes a nav link to itself for an approved seller', function () {
+    $this->actingAs(User::factory()->approvedSeller()->create())
+        ->get('/calculator-2')
+        ->assertOk()
+        ->assertSee(__('messages.calculator_2'))
+        ->assertSee(route('calculator2'), false);
+});
