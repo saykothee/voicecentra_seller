@@ -21,6 +21,7 @@
                         <x-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">{{ __('messages.all_sales') }}</x-nav-link>
                         <x-nav-link :href="route('admin.bonus-pool')" :active="request()->routeIs('admin.bonus-pool')">{{ __('messages.bonus_pool') }}</x-nav-link>
                         <x-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-nav-link>
+                        <x-nav-link :href="route('calculator2')" :active="request()->routeIs('calculator2')">{{ __('messages.calculator_2') }}</x-nav-link>
                         <x-dropdown align="left" width="48">
                             <x-slot name="trigger">
                                 <button class="inline-flex items-center h-full px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none
@@ -44,6 +45,7 @@
                         <x-nav-link :href="route('seller.sales.index')" :active="request()->routeIs('seller.sales.*')">{{ __('messages.my_sales') }}</x-nav-link>
                         <x-nav-link :href="route('seller.commissions')" :active="request()->routeIs('seller.commissions')">{{ __('messages.my_commissions') }}</x-nav-link>
                         <x-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-nav-link>
+                        <x-nav-link :href="route('calculator2')" :active="request()->routeIs('calculator2')">{{ __('messages.calculator_2') }}</x-nav-link>
                     @endif
                 </div>
             </div>
@@ -113,6 +115,7 @@
                 <x-responsive-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">{{ __('messages.all_sales') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.bonus-pool')" :active="request()->routeIs('admin.bonus-pool')">{{ __('messages.bonus_pool') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('calculator2')" :active="request()->routeIs('calculator2')">{{ __('messages.calculator_2') }}</x-responsive-nav-link>
                 <div class="px-4 pt-2 text-xs font-semibold uppercase text-gray-400">{{ __('messages.configuration') }}</div>
                 <x-responsive-nav-link :href="route('admin.configuration.min-sales')" :active="request()->routeIs('admin.configuration.min-sales')">
                     {{ __('messages.min_sales_nav') }}
@@ -122,6 +125,7 @@
                 <x-responsive-nav-link :href="route('seller.sales.index')" :active="request()->routeIs('seller.sales.*')">{{ __('messages.my_sales') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('seller.commissions')" :active="request()->routeIs('seller.commissions')">{{ __('messages.my_commissions') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('calculator2')" :active="request()->routeIs('calculator2')">{{ __('messages.calculator_2') }}</x-responsive-nav-link>
             @endif
         </div>
 
