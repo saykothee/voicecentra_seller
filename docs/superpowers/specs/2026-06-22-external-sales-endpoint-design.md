@@ -9,9 +9,15 @@
 A machine-to-machine JSON API endpoint that lets a different system push sale
 records for sellers. The caller authenticates with a JWT (HS256, shared secret) in
 the `Authorization` header; the sale fields arrive in the JSON body. Records are
-stored in a new dedicated `external_sales` table, kept independent of the existing
-commission `sales`/approval/distribution flow — this is purely sale tracking per
-seller.
+stored directly in the existing `sales` table as **already-approved** sales (the
+caller is a trusted system). The dedicated `external_sales` table was removed
+(migration `2026_06_22_160000_merge_external_sales_into_sales_table`).
+
+**Field mapping into `sales`:** `sale_date` → `sold_at`, `amount` → `amount_cents`,
+`paid_at` → `paid_at`, `paid` → `paid`, `free_trial` → `trial`. `seller_id`,
+`status` (`approved`), and `approved_at` (`now()`) are set explicitly (not
+mass-assignable); `approved_by` stays null (no admin approved it). The endpoint
+records the sale only — it does NOT trigger commission distribution.
 
 ## Authentication
 
@@ -44,24 +50,21 @@ seller.
 
 ## Data Model
 
-**Table `external_sales`:**
+**Table `sales`** (existing) — columns added for external ingestion:
 | Column | Type | Notes |
 |---|---|---|
-| `id` | bigint pk | |
-| `seller_id` | foreignId → users, cascadeOnDelete | must reference an existing user |
-| `sale_date` | date | when the sale occurred |
 | `paid_at` | datetime, nullable | when it was paid; null if not paid yet |
-| `amount_cents` | unsigned bigint | request decimal × 100, rounded |
-| `paid` | boolean | |
-| `free_trial` | boolean | |
-| `timestamps` | | received-at audit |
-| index | `(seller_id, sale_date)` | for per-seller reporting |
+| `paid` | boolean, default false | |
+| `trial` | boolean, default false | from the incoming `free_trial` flag |
 
-**Model `App\Models\ExternalSale`:**
-- `$fillable = ['seller_id', 'sale_date', 'paid_at', 'amount_cents', 'paid', 'free_trial']`.
-- Casts: `sale_date` → date, `paid_at` → datetime, `amount_cents` → integer,
-  `paid` → boolean, `free_trial` → boolean.
-- `seller()` belongsTo `User` (for later reporting).
+Existing `sales` columns (`seller_id`, `amount_cents`, `sold_at`, `status`,
+`approved_by`, `approved_at`, `notes`, `timestamps`) are reused. The external
+sale's date lands in `sold_at`.
+
+**Model `App\Models\Sale`** (existing):
+- `$fillable = ['amount_cents', 'sold_at', 'paid_at', 'paid', 'trial', 'notes']`
+  (`seller_id`/`status`/`approved_*` set explicitly, never mass-assigned).
+- Casts add `paid_at` → datetime, `paid` → boolean, `trial` → boolean.
 
 ## Request / Response
 

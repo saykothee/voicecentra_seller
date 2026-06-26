@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\ExternalSale;
+use App\Models\Sale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -21,14 +21,20 @@ class ExternalSaleController extends Controller
             'free_trial' => ['required', 'boolean'],
         ]);
 
-        $sale = ExternalSale::create([
-            'seller_id' => $data['seller_id'],
-            'sale_date' => $data['sale_date'],
-            'paid_at' => $data['paid_at'] ?? null,
+        // Recorded straight into the sales table as already-approved (it comes
+        // from a trusted external system). The incoming `free_trial` maps to the
+        // `trial` column and `sale_date` to `sold_at`.
+        $sale = new Sale([
             'amount_cents' => (int) round($data['amount'] * 100),
+            'sold_at' => $data['sale_date'],
+            'paid_at' => $data['paid_at'] ?? null,
             'paid' => $data['paid'],
-            'free_trial' => $data['free_trial'],
+            'trial' => $data['free_trial'],
         ]);
+        $sale->seller_id = $data['seller_id']; // not mass-assignable
+        $sale->status = 'approved';
+        $sale->approved_at = now();
+        $sale->save();
 
         return response()->json(['id' => $sale->id, 'status' => 'recorded'], 201);
     }

@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\ExternalSale;
+use App\Models\Sale;
 use App\Models\User;
 use Firebase\JWT\JWT;
 
@@ -85,27 +85,7 @@ test('a seller_id that is not a seller (e.g. an admin) returns 422', function ()
         ->assertStatus(422)->assertJsonValidationErrors('seller_id');
 });
 
-test('an external sale persists with cents and boolean casts', function () {
-    $seller = User::factory()->approvedSeller()->create();
-
-    $sale = ExternalSale::create([
-        'seller_id' => $seller->id,
-        'sale_date' => '2026-06-20',
-        'paid_at' => '2026-06-21 14:30:00',
-        'amount_cents' => 4999,
-        'paid' => true,
-        'free_trial' => false,
-    ]);
-
-    $fresh = $sale->fresh();
-    expect($fresh->amount_cents)->toBe(4999);
-    expect($fresh->paid)->toBeTrue();
-    expect($fresh->free_trial)->toBeFalse();
-    expect($fresh->sale_date->format('Y-m-d'))->toBe('2026-06-20');
-    expect($fresh->seller->id)->toBe($seller->id);
-});
-
-test('a valid request records an external sale and returns 201', function () {
+test('a valid request records an approved sale and returns 201', function () {
     $seller = User::factory()->approvedSeller()->create();
 
     $response = $this->withToken(validToken())
@@ -113,13 +93,25 @@ test('a valid request records an external sale and returns 201', function () {
 
     $response->assertStatus(201)->assertJson(['status' => 'recorded']);
 
-    $sale = ExternalSale::first();
+    $sale = Sale::first();
     expect($sale->seller_id)->toBe($seller->id);
     expect($sale->amount_cents)->toBe(4999);
+    expect($sale->status)->toBe('approved');
+    expect($sale->approved_at)->not->toBeNull();
     expect($sale->paid)->toBeTrue();
-    expect($sale->free_trial)->toBeFalse();
-    expect($sale->sale_date->format('Y-m-d'))->toBe('2026-06-20');
+    expect($sale->trial)->toBeFalse();
+    expect($sale->sold_at->format('Y-m-d'))->toBe('2026-06-20');
     expect($response->json('id'))->toBe($sale->id);
+});
+
+test('the incoming free_trial flag maps to the trial column', function () {
+    $seller = User::factory()->approvedSeller()->create();
+
+    $this->withToken(validToken())
+        ->postJson('/api/external-sales', [...validPayload($seller->id), 'free_trial' => true])
+        ->assertStatus(201);
+
+    expect(Sale::first()->trial)->toBeTrue();
 });
 
 test('a whole-number amount converts to cents correctly', function () {
@@ -129,7 +121,7 @@ test('a whole-number amount converts to cents correctly', function () {
         ->postJson('/api/external-sales', [...validPayload($seller->id), 'amount' => 100])
         ->assertStatus(201);
 
-    expect(ExternalSale::first()->amount_cents)->toBe(10000);
+    expect(Sale::first()->amount_cents)->toBe(10000);
 });
 
 test('an unpaid sale with null paid_at is accepted', function () {
@@ -141,7 +133,7 @@ test('an unpaid sale with null paid_at is accepted', function () {
         ])
         ->assertStatus(201);
 
-    $sale = ExternalSale::first();
+    $sale = Sale::first();
     expect($sale->paid)->toBeFalse();
     expect($sale->paid_at)->toBeNull();
 });
