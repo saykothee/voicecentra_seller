@@ -15,8 +15,8 @@ class DatabaseSeeder extends Seeder
     {
         User::factory()->create([
             'name' => 'VoiceCentra Admin',
-            'email' => env('ADMIN_EMAIL', 'admin@voicecentra.com'),
-            'password' => \Illuminate\Support\Facades\Hash::make(env('ADMIN_PASSWORD', 'ChangeMe123!')),
+            'email' => env('ADMIN_EMAIL', 'admin@admin.com'),
+            'password' => \Illuminate\Support\Facades\Hash::make(env('ADMIN_PASSWORD', 'admin')),
             'role' => 'admin',
             'status' => 'approved',
             'phone' => null,

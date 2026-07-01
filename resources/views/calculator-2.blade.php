@@ -20,20 +20,59 @@
                         </select>
                         <x-input-error :messages="$errors->get('seller_id')" class="mt-2" />
                     </div>
+
+                    @php $monthCount = max($monthsMin, min($monthsMax, (int) old('months', $months))); @endphp
                     <div>
-                        <x-input-label for="amount" :value="__('messages.sale_amount')" />
-                        <x-text-input id="amount" name="amount" type="number" step="0.01" min="0.01"
-                                      class="mt-1 block w-full" :value="old('amount', $input['amount'])" required />
-                        <x-input-error :messages="$errors->get('amount')" class="mt-2" />
+                        <x-input-label for="months" :value="__('messages.months_to_project')" />
+                        <x-text-input id="months" name="months" type="number" step="1" :min="$monthsMin" :max="$monthsMax"
+                                      onchange="this.form.submit()"
+                                      class="mt-1 block w-full" :value="old('months', $months)" required />
+                        <x-input-error :messages="$errors->get('months')" class="mt-2" />
+                        <p class="mt-1 text-xs text-gray-400">{{ __('messages.months_help', ['min' => $monthsMin, 'max' => $monthsMax]) }}</p>
                     </div>
+
+                    {{-- Per-month sales: each month gets its own amount (per sale) and quantity. --}}
+                    <div>
+                        <x-input-label :value="__('messages.monthly_inputs')" />
+                        <table class="mt-1 min-w-full text-sm">
+                            <thead class="text-left text-gray-500">
+                                <tr>
+                                    <th class="py-1 pr-3 font-medium">{{ __('messages.col_month') }}</th>
+                                    <th class="py-1 pr-3 font-medium">{{ __('messages.col_amount') }}</th>
+                                    <th class="py-1 font-medium">{{ __('messages.col_quantity') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for ($month = 1; $month <= $monthCount; $month++)
+                                    <tr>
+                                        <td class="py-1 pr-3 font-medium text-brand-navy whitespace-nowrap">{{ __('messages.month_n', ['n' => $month]) }}</td>
+                                        <td class="py-1 pr-3">
+                                            <x-text-input name="amount[{{ $month }}]" type="number" step="0.01" min="0.01"
+                                                          class="block w-full text-sm" :value="old('amount.'.$month, $input['amounts'][$month] ?? 199)" required />
+                                            <x-input-error :messages="$errors->get('amount.'.$month)" class="mt-1" />
+                                        </td>
+                                        <td class="py-1">
+                                            <x-text-input name="quantity[{{ $month }}]" type="number" step="1" min="0" max="10000"
+                                                          class="block w-full text-sm" :value="old('quantity.'.$month, $input['quantities'][$month] ?? 1)" required />
+                                            <x-input-error :messages="$errors->get('quantity.'.$month)" class="mt-1" />
+                                        </td>
+                                    </tr>
+                                @endfor
+                            </tbody>
+                        </table>
+                    </div>
+
                     <button type="submit" class="bg-brand-blue hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm">
                         {{ __('messages.calculate') }}
                     </button>
                 </form>
 
-                {{-- Per-member breakdown: amount × min_sales(age) --}}
-                @if ($result !== null)
-                    <h3 class="mt-8 font-semibold text-brand-navy">{{ __('messages.per_member_breakdown') }}</h3>
+                {{-- Per-member breakdown: total 6-month volume × min_sales(age) --}}
+                @if ($computed)
+                    <p class="mt-8 text-sm font-medium text-brand-navy">{{ __('messages.total_volume_note', [
+                        'total' => \Illuminate\Support\Number::currency($totalVolumeCents / 100),
+                    ]) }}</p>
+                    <h3 class="mt-4 font-semibold text-brand-navy">{{ __('messages.per_member_breakdown') }}</h3>
                     <table class="mt-3 min-w-full divide-y divide-gray-200 text-sm">
                         <thead class="text-left text-gray-500">
                             <tr>
@@ -72,67 +111,59 @@
             </div>
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <h3 class="font-semibold text-brand-navy">{{ __('messages.results') }}</h3>
+                <h3 class="font-semibold text-brand-navy">{{ __('messages.projection_title', ['n' => $months]) }}</h3>
 
-                @if ($result === null)
+                @if (! $computed)
                     <p class="mt-4 text-sm text-gray-400">—</p>
                 @else
-                    @php $uplinesPaid = collect($result['levels'])->where('paid', true)->sum('amount_cents'); @endphp
+                    @php
+                        $sellerFlatTotalCents = array_sum(array_column($projection, 'seller_flat_cents'));
+                        $sellerCommissionTotalCents = array_sum(array_column($projection, 'seller_commission_cents'));
+                        $sellerTotalCents = array_sum(array_column($projection, 'seller_cents'));
+                        $chainTotalCents = array_sum(array_column($projection, 'chain_cents'));
+                        $grandTotalCents = array_sum(array_column($projection, 'total_cents'));
+                    @endphp
 
-                    <p class="mt-3 text-xs text-gray-500">{{ __('messages.distributed_note', ['amount' => \Illuminate\Support\Number::currency($sellerEffectiveCents / 100)]) }}</p>
+                    <p class="mt-2 text-xs text-gray-500">{{ __('messages.ramp_note', ['flat' => \Illuminate\Support\Number::currency(config('commissions.ramp.seller_flat_cents') / 100)]) }}</p>
 
                     <table class="mt-4 min-w-full divide-y divide-gray-200 text-sm">
                         <thead class="text-left text-gray-500">
                             <tr>
-                                <th class="py-2 pr-4">{{ __('messages.level') }}</th>
-                                <th class="py-2 pr-4">{{ __('messages.col_name') }}</th>
-                                <th class="py-2 pr-4 text-right">{{ __('messages.sale_amount') }}</th>
-                                <th class="py-2">{{ __('messages.destination') }}</th>
+                                <th rowspan="2" class="py-2 pr-4 align-bottom">{{ __('messages.col_month') }}</th>
+                                <th rowspan="2" class="py-2 pr-4 text-right align-bottom">{{ __('messages.col_active_volume') }}</th>
+                                <th colspan="3" class="py-1 pr-4 text-center border-b border-gray-200 font-semibold text-brand-navy">{{ __('messages.seller_label') }}</th>
+                                <th rowspan="2" class="py-2 pr-4 text-right align-bottom">{{ __('messages.col_chain') }}</th>
+                                <th rowspan="2" class="py-2 text-right align-bottom">{{ __('messages.col_total') }}</th>
+                            </tr>
+                            <tr>
+                                <th class="py-1 pr-4 text-right font-normal">{{ __('messages.col_flat') }}</th>
+                                <th class="py-1 pr-4 text-right font-normal">{{ __('messages.col_commission') }}</th>
+                                <th class="py-1 pr-4 text-right font-normal">{{ __('messages.col_total') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            <tr>
-                                <td class="py-2 pr-4 font-medium text-brand-navy">{{ __('messages.seller_cut') }}</td>
-                                <td class="py-2 pr-4">{{ $members[0]['name'] ?? '' }}</td>
-                                <td class="py-2 pr-4 text-right font-medium">{{ \Illuminate\Support\Number::currency($result['seller_cents'] / 100) }}</td>
-                                <td class="py-2 text-green-700">{{ __('messages.dest_paid') }}</td>
-                            </tr>
-                            @foreach ($result['levels'] as $level => $line)
-                                <tr class="{{ $line['exists'] ? '' : 'text-gray-400' }}">
-                                    <td class="py-2 pr-4">L{{ $level }}</td>
-                                    <td class="py-2 pr-4">{{ $chain[$level]->name ?? __('messages.dest_pool_no_upline') }}</td>
-                                    <td class="py-2 pr-4 text-right">{{ \Illuminate\Support\Number::currency($line['amount_cents'] / 100) }}</td>
-                                    <td class="py-2">
-                                        @if ($line['paid'])
-                                            <span class="text-green-700">{{ __('messages.dest_paid') }}</span>
-                                        @elseif ($line['pool_reason'] === 'inactive_upline')
-                                            <span class="text-amber-600">{{ __('messages.dest_pool_inactive') }}</span>
-                                        @else
-                                            <span class="text-gray-500">{{ __('messages.dest_pool_no_upline') }}</span>
-                                        @endif
-                                    </td>
+                            @foreach ($projection as $row)
+                                <tr class="{{ $row['total_cents'] === 0 ? 'text-gray-400' : '' }}">
+                                    <td class="py-2 pr-4 font-medium text-brand-navy">{{ __('messages.month_n', ['n' => $row['month']]) }}</td>
+                                    <td class="py-2 pr-4 text-right text-gray-500">{{ \Illuminate\Support\Number::currency($row['active_volume_cents'] / 100) }}</td>
+                                    <td class="py-2 pr-4 text-right">{{ \Illuminate\Support\Number::currency($row['seller_flat_cents'] / 100) }}</td>
+                                    <td class="py-2 pr-4 text-right">{{ \Illuminate\Support\Number::currency($row['seller_commission_cents'] / 100) }}</td>
+                                    <td class="py-2 pr-4 text-right font-medium">{{ \Illuminate\Support\Number::currency($row['seller_cents'] / 100) }}</td>
+                                    <td class="py-2 pr-4 text-right">{{ \Illuminate\Support\Number::currency($row['chain_cents'] / 100) }}</td>
+                                    <td class="py-2 text-right font-medium">{{ \Illuminate\Support\Number::currency($row['total_cents'] / 100) }}</td>
                                 </tr>
                             @endforeach
-                            <tr>
-                                <td class="py-2 pr-4 text-gray-500" colspan="2">{{ __('messages.rounding_remainder') }}</td>
-                                <td class="py-2 pr-4 text-right text-gray-500">{{ \Illuminate\Support\Number::currency($result['pool_rounding_cents'] / 100) }}</td>
-                                <td class="py-2 text-gray-500">{{ __('messages.pool_total') }}</td>
+                            <tr class="border-t-2">
+                                <td class="py-2 pr-4 font-semibold text-brand-navy">{{ __('messages.projection_total', ['n' => $months]) }}</td>
+                                <td class="py-2 pr-4 text-right font-bold text-brand-navy">{{ \Illuminate\Support\Number::currency($totalVolumeCents / 100) }}</td>
+                                <td class="py-2 pr-4 text-right font-bold text-brand-navy">{{ \Illuminate\Support\Number::currency($sellerFlatTotalCents / 100) }}</td>
+                                <td class="py-2 pr-4 text-right font-bold text-brand-navy">{{ \Illuminate\Support\Number::currency($sellerCommissionTotalCents / 100) }}</td>
+                                <td class="py-2 pr-4 text-right font-bold text-brand-navy">{{ \Illuminate\Support\Number::currency($sellerTotalCents / 100) }}</td>
+                                <td class="py-2 pr-4 text-right font-bold text-brand-navy">{{ \Illuminate\Support\Number::currency($chainTotalCents / 100) }}</td>
+                                <td class="py-2 text-right font-bold text-brand-navy">{{ \Illuminate\Support\Number::currency($grandTotalCents / 100) }}</td>
                             </tr>
                         </tbody>
                     </table>
-
-                    <dl class="mt-6 grid grid-cols-2 gap-3 text-sm">
-                        <dt class="text-gray-500">{{ __('messages.seller_cut') }}</dt>
-                        <dd class="text-right font-semibold text-brand-navy">{{ \Illuminate\Support\Number::currency($result['seller_cents'] / 100) }}</dd>
-                        <dt class="text-gray-500">{{ __('messages.uplines_total') }}</dt>
-                        <dd class="text-right font-semibold text-brand-navy">{{ \Illuminate\Support\Number::currency($uplinesPaid / 100) }}</dd>
-                        <dt class="text-gray-500">{{ __('messages.pool_total') }}</dt>
-                        <dd class="text-right font-semibold text-emerald-600">{{ \Illuminate\Support\Number::currency($result['pool_total_cents'] / 100) }}</dd>
-                        <dt class="text-gray-500 border-t pt-2">{{ __('messages.company_cost') }}</dt>
-                        <dd class="text-right font-bold text-brand-navy border-t pt-2">{{ \Illuminate\Support\Number::currency($result['total_charge_cents'] / 100) }}</dd>
-                    </dl>
-
-                    <p class="mt-4 text-xs text-green-700">✓ {{ __('messages.invariant_ok') }}</p>
                 @endif
             </div>
         </div>

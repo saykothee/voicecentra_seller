@@ -23,6 +23,7 @@
                     <thead class="bg-gray-50 text-left text-gray-500">
                         <tr>
                             <th class="px-4 py-3">{{ __('messages.seller') }}</th>
+                            <th class="px-4 py-3">{{ __('messages.client_id') }}</th>
                             <th class="px-4 py-3">{{ __('messages.sale_amount') }}</th>
                             <th class="px-4 py-3">{{ __('messages.sold_at_label') }}</th>
                             <th class="px-4 py-3">{{ __('messages.notes') }}</th>
@@ -34,6 +35,7 @@
                         @forelse ($sales as $sale)
                             <tr>
                                 <td class="px-4 py-3 font-medium text-brand-navy">{{ $sale->seller->name }}</td>
+                                <td class="px-4 py-3 text-gray-600">{{ $sale->client_id ?? '—' }}</td>
                                 <td class="px-4 py-3">{{ \Illuminate\Support\Number::currency($sale->amount_cents / 100) }}</td>
                                 <td class="px-4 py-3 text-gray-600">{{ $sale->sold_at->format('Y-m-d') }}</td>
                                 <td class="px-4 py-3 text-gray-600">{{ \Illuminate\Support\Str::limit($sale->notes, 40) }}</td>
@@ -69,7 +71,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">{{ __('messages.no_sales') }}</td></tr>
+                            <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">{{ __('messages.no_sales') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

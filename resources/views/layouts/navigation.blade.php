@@ -18,8 +18,10 @@
                     @if (Auth::user()->isAdmin())
                         <x-nav-link :href="route('admin.sellers.index')" :active="request()->routeIs('admin.sellers.*')">{{ __('messages.manage_sellers') }}</x-nav-link>
                         <x-nav-link :href="route('admin.network')" :active="request()->routeIs('admin.network')">{{ __('messages.network') }}</x-nav-link>
-                        <x-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">{{ __('messages.all_sales') }}</x-nav-link>
+                        <x-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.index')">{{ __('messages.all_sales') }}</x-nav-link>
+                        <x-nav-link :href="route('admin.sales.create')" :active="request()->routeIs('admin.sales.create')">{{ __('messages.create_sale') }}</x-nav-link>
                         <x-nav-link :href="route('admin.bonus-pool')" :active="request()->routeIs('admin.bonus-pool')">{{ __('messages.bonus_pool') }}</x-nav-link>
+                        <x-nav-link :href="route('admin.client-payments')" :active="request()->routeIs('admin.client-payments')">{{ __('messages.client_payments') }}</x-nav-link>
                         <x-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-nav-link>
                         <x-nav-link :href="route('calculator2')" :active="request()->routeIs('calculator2')">{{ __('messages.calculator_2') }}</x-nav-link>
                         <x-dropdown align="left" width="48">
@@ -44,6 +46,7 @@
                         <x-nav-link :href="route('seller.network')" :active="request()->routeIs('seller.network')">{{ __('messages.my_network') }}</x-nav-link>
                         <x-nav-link :href="route('seller.sales.index')" :active="request()->routeIs('seller.sales.*')">{{ __('messages.my_sales') }}</x-nav-link>
                         <x-nav-link :href="route('seller.commissions')" :active="request()->routeIs('seller.commissions')">{{ __('messages.my_commissions') }}</x-nav-link>
+                        <x-nav-link :href="route('seller.client-payments')" :active="request()->routeIs('seller.client-payments')">{{ __('messages.client_payments') }}</x-nav-link>
                         <x-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-nav-link>
                         <x-nav-link :href="route('calculator2')" :active="request()->routeIs('calculator2')">{{ __('messages.calculator_2') }}</x-nav-link>
                     @endif
@@ -112,8 +115,10 @@
             @if (Auth::user()->isAdmin())
                 <x-responsive-nav-link :href="route('admin.sellers.index')" :active="request()->routeIs('admin.sellers.*')">{{ __('messages.manage_sellers') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.network')" :active="request()->routeIs('admin.network')">{{ __('messages.network') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.*')">{{ __('messages.all_sales') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.sales.index')" :active="request()->routeIs('admin.sales.index')">{{ __('messages.all_sales') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.sales.create')" :active="request()->routeIs('admin.sales.create')">{{ __('messages.create_sale') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.bonus-pool')" :active="request()->routeIs('admin.bonus-pool')">{{ __('messages.bonus_pool') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.client-payments')" :active="request()->routeIs('admin.client-payments')">{{ __('messages.client_payments') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('calculator2')" :active="request()->routeIs('calculator2')">{{ __('messages.calculator_2') }}</x-responsive-nav-link>
                 <div class="px-4 pt-2 text-xs font-semibold uppercase text-gray-400">{{ __('messages.configuration') }}</div>
@@ -124,6 +129,7 @@
                 <x-responsive-nav-link :href="route('seller.network')" :active="request()->routeIs('seller.network')">{{ __('messages.my_network') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('seller.sales.index')" :active="request()->routeIs('seller.sales.*')">{{ __('messages.my_sales') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('seller.commissions')" :active="request()->routeIs('seller.commissions')">{{ __('messages.my_commissions') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('seller.client-payments')" :active="request()->routeIs('seller.client-payments')">{{ __('messages.client_payments') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('calculator')" :active="request()->routeIs('calculator')">{{ __('messages.calculator') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('calculator2')" :active="request()->routeIs('calculator2')">{{ __('messages.calculator_2') }}</x-responsive-nav-link>
             @endif

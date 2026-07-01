@@ -30,10 +30,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/sellers/{user}/sponsor', [AdminSellerController::class, 'editSponsor'])->name('sellers.sponsor.edit');
     Route::patch('/sellers/{user}/sponsor', [AdminSellerController::class, 'updateSponsor'])->name('sellers.sponsor.update');
     Route::get('/sales', [\App\Http\Controllers\Admin\AdminSaleController::class, 'index'])->name('sales.index');
+    Route::get('/sales/create', [\App\Http\Controllers\Admin\AdminSaleController::class, 'create'])->name('sales.create');
+    Route::post('/sales', [\App\Http\Controllers\Admin\AdminSaleController::class, 'store'])->name('sales.store');
     Route::patch('/sales/{sale}/approve', [\App\Http\Controllers\Admin\AdminSaleController::class, 'approve'])->name('sales.approve');
     Route::patch('/sales/{sale}/reject', [\App\Http\Controllers\Admin\AdminSaleController::class, 'reject'])->name('sales.reject');
     Route::patch('/sales/{sale}/refund', [\App\Http\Controllers\Admin\AdminSaleController::class, 'refund'])->name('sales.refund');
     Route::get('/bonus-pool', \App\Http\Controllers\Admin\AdminBonusPoolController::class)->name('bonus-pool');
+    Route::get('/client-payments', [\App\Http\Controllers\Admin\AdminClientPaymentController::class, 'index'])->name('client-payments');
     Route::get('/configuration/min-sales', [\App\Http\Controllers\Admin\AdminMinSalesController::class, 'index'])->name('configuration.min-sales');
     Route::patch('/configuration/min-sales', [\App\Http\Controllers\Admin\AdminMinSalesController::class, 'update'])->name('configuration.min-sales.update');
 });
@@ -44,6 +47,7 @@ Route::middleware(['auth', 'seller.approved'])->group(function () {
     Route::get('/seller/network', \App\Http\Controllers\SellerNetworkController::class)->name('seller.network');
     Route::get('/seller/sales', [\App\Http\Controllers\SellerSaleController::class, 'index'])->name('seller.sales.index');
     Route::post('/seller/sales', [\App\Http\Controllers\SellerSaleController::class, 'store'])->name('seller.sales.store');
+    Route::get('/seller/client-payments', [\App\Http\Controllers\SellerClientPaymentController::class, 'index'])->name('seller.client-payments');
 });
 
 Route::middleware('auth')->group(function () {

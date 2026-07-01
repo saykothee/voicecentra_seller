@@ -104,6 +104,16 @@ test('a valid request records an approved sale and returns 201', function () {
     expect($response->json('id'))->toBe($sale->id);
 });
 
+test('an incoming client_id is stored on the sale', function () {
+    $seller = User::factory()->approvedSeller()->create();
+
+    $this->withToken(validToken())
+        ->postJson('/api/external-sales', [...validPayload($seller->id), 'client_id' => 'CUST-42'])
+        ->assertStatus(201);
+
+    expect(Sale::first()->client_id)->toBe('CUST-42');
+});
+
 test('the incoming free_trial flag maps to the trial column', function () {
     $seller = User::factory()->approvedSeller()->create();
 

@@ -12,7 +12,7 @@ class Sale extends Model
     use HasFactory;
 
     // seller_id / status / approved_* are set explicitly, never mass-assigned.
-    protected $fillable = ['amount_cents', 'sold_at', 'paid_at', 'paid', 'trial', 'notes'];
+    protected $fillable = ['client_id', 'amount_cents', 'sold_at', 'paid_at', 'paid', 'trial', 'notes'];
 
     protected function casts(): array
     {
